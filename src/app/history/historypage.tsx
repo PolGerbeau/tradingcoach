@@ -24,11 +24,41 @@ interface Analysis {
   supportResistance?: SupportResistance[];
 }
 
+// Hook para detectar swipe hacia abajo
+function useSwipeDown(onSwipeDown: () => void, threshold = 100) {
+  useEffect(() => {
+    let touchStartY = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY;
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      const touchEndY = e.changedTouches[0].clientY;
+      if (touchEndY - touchStartY > threshold) {
+        onSwipeDown();
+      }
+    };
+
+    window.addEventListener("touchstart", handleTouchStart);
+    window.addEventListener("touchend", handleTouchEnd);
+
+    return () => {
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [onSwipeDown, threshold]);
+}
+
 export default function HistoryPage() {
   const [history, setHistory] = useState<Analysis[]>([]);
   const [selected, setSelected] = useState<Analysis | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const searchParams = useSearchParams();
+
+  useSwipeDown(() => {
+    if (isOpen) closeModal();
+  });
 
   useEffect(() => {
     const stored = localStorage.getItem("tradingcoach_history");
@@ -80,7 +110,7 @@ export default function HistoryPage() {
     selected?.supportResistance && selected.supportResistance.length > 0;
 
   return (
-    <main className="max-w-6xl mx-auto px-6 py-20">
+    <main className="max-w-6xl mx-auto px-4 sm:px-6 py-20">
       <h1 className="text-3xl font-bold text-blue-800 mb-6 text-center">
         Analysis
       </h1>
@@ -98,8 +128,8 @@ export default function HistoryPage() {
             </button>
           </div>
 
-          <div className="rounded-xl overflow-hidden shadow border border-gray-200">
-            <table className="w-full table-auto text-sm">
+          <div className="overflow-x-auto rounded-xl shadow border border-gray-200">
+            <table className="min-w-full table-auto text-sm">
               <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
                 <tr>
                   <th className="py-3 px-4 text-left">Date</th>
