@@ -3,16 +3,24 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export async function POST(req: Request) {
   try {
-    const { profile, history = [], pastAnalyses = [], message } = await req.json();
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
+    const {
+      profile,
+      history = [],
+      pastAnalyses = [],
+      message,
+    } = await req.json();
 
     if (!message || typeof message !== "string") {
-      return NextResponse.json({ error: "Missing or invalid 'message'" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing or invalid 'message'" },
+        { status: 400 }
+      );
     }
 
     const fullPrompt = `
@@ -30,14 +38,24 @@ User profile:
 ${JSON.stringify(profile, null, 2)}
 
 Conversation history:
-${history.map((m: any) => `${m.role === "user" ? "User" : "Coach"}: ${m.text}`).join("\n")}
+${history
+  .map((m: any) => `${m.role === "user" ? "User" : "Coach"}: ${m.text}`)
+  .join("\n")}
 
 Past chart analyses:
-${pastAnalyses.length > 0 ? pastAnalyses.map((entry: any, i: number) => {
-  return `Analysis ${i + 1} – ${entry.ticker} (${entry.timeframe}) on ${entry.date}:
+${
+  pastAnalyses.length > 0
+    ? pastAnalyses
+        .map((entry: any, i: number) => {
+          return `Analysis ${i + 1} – ${entry.ticker} (${entry.timeframe}) on ${
+            entry.date
+          }:
 Recommendation: ${entry.recommendation}
 Reasoning: ${entry.reasoning}`;
-}).join("\n\n") : "None"}
+        })
+        .join("\n\n")
+    : "None"
+}
 
 Latest user message:
 "${message}"
@@ -58,6 +76,9 @@ Latest user message:
     return NextResponse.json({ reply });
   } catch (err) {
     console.error("Error in /api/chat:", err);
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Something went wrong." },
+      { status: 500 }
+    );
   }
 }

@@ -2,12 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { v4 as uuidv4 } from "uuid";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
   const file = formData.get("image") as File;
   const profile = formData.get("profile") as string;
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   if (!file) {
     return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
@@ -22,7 +21,7 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: "system",
-         content: `You are a trading coach assistant. Analyze the chart image and return:
+          content: `You are a trading coach assistant. Analyze the chart image and return:
 - Ticker (if visible)
 - Current price (if visible)
 - Timeframe (e.g., 1D, 4H)
@@ -41,7 +40,7 @@ Resistance: 158.00 – recent highs from May
 
 Do not use parentheses or any other format. Always return Support/Resistance levels in this exact format so they can be extracted reliably.
 
-Also consider the user's profile: ${profile}. Please return the response in plain text format only, without Markdown, bold, bullet points, or any additional formatting.`
+Also consider the user's profile: ${profile}. Please return the response in plain text format only, without Markdown, bold, bullet points, or any additional formatting.`,
         },
         {
           role: "user",
