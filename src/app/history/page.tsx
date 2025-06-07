@@ -76,6 +76,9 @@ export default function HistoryPage() {
     return "text-yellow-600";
   };
 
+  const hasSupportResistance =
+    selected?.supportResistance && selected.supportResistance.length > 0;
+
   return (
     <main className="max-w-6xl mx-auto px-6 py-20">
       <h1 className="text-3xl font-bold text-blue-800 mb-6 text-center">
@@ -190,13 +193,13 @@ export default function HistoryPage() {
                     </div>
                   </div>
 
-                  {selected.supportResistance?.length > 0 && (
+                  {hasSupportResistance && (
                     <div>
                       <p className="font-semibold text-gray-800 mb-1">
                         Support/Resistance Levels:
                       </p>
                       <ul className="list-disc pl-5 text-sm space-y-1">
-                        {selected.supportResistance.map((s, idx) => (
+                        {selected.supportResistance!.map((s, idx) => (
                           <li key={idx}>
                             <span className="font-medium">
                               {s.type} @ {s.level}:
