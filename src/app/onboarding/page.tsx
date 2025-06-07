@@ -278,7 +278,13 @@ export default function OnboardingPage() {
               {key}
             </p>
             <p className="text-gray-900">
-              {Array.isArray(value) ? value.join(", ") : value || "-"}
+              {Array.isArray(value)
+                ? value.join(", ")
+                : typeof value === "string" || typeof value === "number"
+                ? value
+                : value === null || value === undefined
+                ? "-"
+                : JSON.stringify(value)}
             </p>
           </div>
         ))}
