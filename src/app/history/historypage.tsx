@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { Dialog } from "@headlessui/react";
 import { useSearchParams } from "next/navigation";
-import { X } from "lucide-react";
+import { X, ArrowUp, ArrowDown, Pause } from "lucide-react";
 
 interface SupportResistance {
   level: string;
@@ -72,9 +72,24 @@ export default function HistoryPage() {
   };
 
   const getColorClass = (rec: string) => {
-    if (rec === "BUY") return "text-green-600";
-    if (rec === "SELL") return "text-red-600";
-    return "text-yellow-600";
+    if (rec === "BUY")
+      return "text-green-600 bg-gradient-to-br from-green-100 to-green-200";
+    if (rec === "SELL")
+      return "text-red-600 bg-gradient-to-br from-red-100 to-red-200";
+    return "text-yellow-600 bg-gradient-to-br from-yellow-100 to-yellow-200";
+  };
+
+  const getIcon = (rec: string) => {
+    switch (rec) {
+      case "BUY":
+        return <ArrowUp className="w-5 h-5 inline mr-1" />;
+      case "SELL":
+        return <ArrowDown className="w-5 h-5 inline mr-1" />;
+      case "HOLD":
+        return <Pause className="w-5 h-5 inline mr-1" />;
+      default:
+        return null;
+    }
   };
 
   const hasSupportResistance =
@@ -89,7 +104,7 @@ export default function HistoryPage() {
         {history.length > 0 && (
           <button
             onClick={handleClearAll}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl shadow-sm"
+            className="absolute top-6 right-6 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-2 rounded-xl shadow-lg transition-all duration-200 text-sm"
           >
             Clear All Analysis
           </button>
@@ -140,11 +155,14 @@ export default function HistoryPage() {
                     </td>
                     <td className="py-3 px-4 font-semibold">
                       <span
-                        className={`uppercase ${getColorClass(
+                        className={`inline-flex items-center px-3 py-1 rounded-full transition-all duration-200 ${getColorClass(
                           entry.recommendation
                         )}`}
                       >
-                        {entry.recommendation}
+                        {getIcon(entry.recommendation)}
+                        <span className="uppercase">
+                          {entry.recommendation}
+                        </span>
                       </span>
                     </td>
                     <td className="py-3 px-4">
@@ -190,12 +208,15 @@ export default function HistoryPage() {
                   <div className="font-semibold text-gray-600">
                     Recommendation
                   </div>
-                  <div
-                    className={`font-semibold ${getColorClass(
-                      entry.recommendation
-                    )}`}
-                  >
-                    {entry.recommendation}
+                  <div className="flex items-center">
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full transition-all duration-200 ${getColorClass(
+                        entry.recommendation
+                      )}`}
+                    >
+                      {getIcon(entry.recommendation)}
+                      <span className="uppercase">{entry.recommendation}</span>
+                    </span>
                   </div>
                 </div>
                 <div className="flex justify-end gap-4 mt-4">
@@ -224,46 +245,59 @@ export default function HistoryPage() {
           aria-hidden="true"
         />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl transition-all space-y-4 max-h-[80vh] overflow-y-auto">
+          <Dialog.Panel className="w-full max-w-2xl rounded-2xl bg-white/95 backdrop-blur-sm p-6 shadow-2xl transition-all space-y-6 max-h-[85vh] overflow-y-auto">
             {selected && (
               <>
-                <div className="flex justify-between items-center mb-1">
-                  <p className="font-semibold text-gray-800">
-                    {selected.ticker}
-                  </p>
-                  <button
-                    onClick={closeModal}
-                    aria-label="Close"
-                    className="text-gray-400 hover:text-gray-600 transition"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+                <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-t-2xl shadow-lg flex justify-between items-center">
+                  <h2 className="text-xl font-bold">{selected.ticker}</h2>
+                  <div className="flex items-center space-x-4">
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full ${getColorClass(
+                        selected.recommendation
+                      )}`}
+                    >
+                      {getIcon(selected.recommendation)}
+                      <span className="uppercase">
+                        {selected.recommendation}
+                      </span>
+                    </span>
+                    <button
+                      onClick={closeModal}
+                      aria-label="Close"
+                      className="text-white hover:text-gray-200 transition"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
                 </div>
 
-                <img
-                  src={selected.chartImage}
-                  alt="Chart"
-                  className="w-full rounded-xl border shadow"
-                />
+                <div className="relative">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg blur opacity-20" />
+                  <img
+                    src={selected.chartImage}
+                    alt="Chart"
+                    className="w-full rounded-lg border-2 border-transparent relative"
+                  />
+                </div>
 
-                <div className="bg-gray-50 border rounded-xl p-4 text-sm text-gray-700 shadow space-y-2">
-                  <div className="text-left space-y-4">
-                    <div>
-                      <p className="font-bold text-gray-900 mb-1">
-                        Recommendation: {selected.recommendation}
-                      </p>
-                      <p className="text-sm">{selected.reasoning}</p>
-                    </div>
+                <div className="bg-gray-50 border-t border-gray-200 rounded-lg p-4 text-gray-700 shadow-inner space-y-4">
+                  <div className="text-left space-y-3">
+                    <p className="text-lg font-semibold text-gray-800 mb-2">
+                      Reasoning for {selected.recommendation}:
+                    </p>
+                    <p className="text-base leading-relaxed">
+                      {selected.reasoning}
+                    </p>
                   </div>
 
                   {hasSupportResistance && (
                     <div>
-                      <p className="font-semibold text-gray-800 mb-1">
+                      <p className="text-lg font-semibold text-gray-800 mb-2">
                         Support/Resistance Levels:
                       </p>
-                      <ul className="list-disc pl-5 text-sm space-y-1">
+                      <ul className="list-disc pl-5 space-y-2">
                         {selected.supportResistance!.map((s, idx) => (
-                          <li key={idx}>
+                          <li key={idx} className="text-base">
                             <span className="font-medium">
                               {s.type} @ {s.level}:
                             </span>{" "}
@@ -276,15 +310,15 @@ export default function HistoryPage() {
                 </div>
 
                 {selected.profileSnapshot && (
-                  <div className="bg-gray-50 border rounded-xl p-4 text-sm text-gray-700 shadow space-y-2">
-                    <p className="font-semibold text-gray-800">
+                  <div className="bg-gray-50 border-t border-gray-200 rounded-lg p-4 text-gray-700 shadow-inner space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-800">
                       Trader Profile
-                    </p>
-                    <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4 text-base">
                       {Object.entries(selected.profileSnapshot).map(
                         ([key, value]) => (
-                          <div key={key}>
-                            <p className="text-xs text-gray-500 font-medium capitalize">
+                          <div key={key} className="flex flex-col">
+                            <p className="text-sm text-gray-500 font-medium capitalize">
                               {key}
                             </p>
                             <p className="text-gray-900">

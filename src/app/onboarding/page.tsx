@@ -1,3 +1,4 @@
+// app/onboarding/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -142,7 +143,21 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     const saved = localStorage.getItem("tradingcoach_profile");
-    if (saved) setForm(JSON.parse(saved));
+    if (saved) {
+      try {
+        setForm(JSON.parse(saved));
+      } catch (error) {
+        console.error("Failed to parse tradingcoach_profile:", error);
+        setForm({
+          profile: "",
+          strategy: "",
+          experience: "",
+          timeframe: "",
+          asset: [],
+          risk: "",
+        });
+      }
+    }
   }, []);
 
   const currentStep = steps[stepIndex];
@@ -254,40 +269,45 @@ export default function OnboardingPage() {
           )}
           <button
             onClick={handleNext}
-            className="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-xl shadow text-sm font-medium"
+            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition-all duration-200"
           >
             {stepIndex === steps.length - 1 ? "Finish" : "Next"}
           </button>
         </div>
       </div>
 
-      <div className="bg-gray-50 border rounded-2xl p-5 text-sm shadow space-y-4">
+      <div className="hidden md:block self-start bg-white border border-gray-200 rounded-2xl p-6 shadow-lg space-y-5 transition-all hover:shadow-xl">
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-bold text-gray-800">Current Profile</h3>
+          <h3 className="text-xl font-semibold text-gray-900">
+            Current Profile
+          </h3>
           <button
             onClick={handleReset}
-            className="text-sm text-red-600 hover:underline"
+            className="text-sm text-red-600 hover:text-red-700 font-medium transition-colors"
+            aria-label="Reset profile"
           >
             Reset
           </button>
         </div>
 
-        {Object.entries(form).map(([key, value]) => (
-          <div key={key}>
-            <p className="text-xs text-gray-500 capitalize font-medium">
-              {key}
-            </p>
-            <p className="text-gray-900">
-              {Array.isArray(value)
-                ? value.join(", ")
-                : typeof value === "string" || typeof value === "number"
-                ? value
-                : value === null || value === undefined
-                ? "-"
-                : JSON.stringify(value)}
-            </p>
-          </div>
-        ))}
+        <div className="grid gap-4">
+          {Object.entries(form).map(([key, value]) => (
+            <div key={key} className="flex items-start gap-3">
+              <p className="text-sm text-gray-500 capitalize font-medium w-1/3">
+                {key}
+              </p>
+              <p className="text-sm text-gray-900 flex-1">
+                {Array.isArray(value)
+                  ? value.length > 0
+                    ? value.join(", ")
+                    : "–"
+                  : typeof value === "string" && value
+                  ? value
+                  : "–"}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </main>
   );

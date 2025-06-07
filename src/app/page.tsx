@@ -20,11 +20,11 @@ export default function HomePage() {
     <main className="min-h-screen bg-gray-50 flex items-center justify-center px-6 py-20">
       <div className="max-w-3xl w-full text-center space-y-8">
         <h1 className="text-5xl font-bold text-blue-800">
-          👋 Welcome {name ? name : "Trader"}
+          Welcome {name ? name : "Trader"}
         </h1>
         <p className="text-gray-600 text-lg">
-          Ready to improve your swing trading? Use the tools below to analyze
-          charts, talk to your coach, or review your past setups.
+          Ready to improve your trading? Use the tools below to analyze charts,
+          talk to your coach, or review your past setups.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">

@@ -1,8 +1,10 @@
+// app/components/SidebarLayout.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { Brain, Upload, BarChart2, MessageCircle, Menu, X } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function SidebarLayout({
   children,
@@ -20,10 +22,10 @@ export default function SidebarLayout({
   }, []);
 
   return (
-    <div className="flex min-h-screen ">
+    <div className="flex min-h-screen">
       {/* Sidebar */}
       <div
-        className={`fixed z-40 inset-y-0 left-0 w-64 bg-white border-r shadow-md px-6 py-8 space-y-8 transform transition-transform duration-300 md:static md:translate-x-0 ${
+        className={`fixed z-40 inset-y-0 left-0 w-64 bg-white border-r shadow-md px-6 py-8 space-y-8 transform transition-transform duration-300 ease-in-out md:static md:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -32,8 +34,9 @@ export default function SidebarLayout({
             TradingCoach
           </h2>
           <button
-            className="md:hidden text-gray-600 hover:text-gray-900"
+            className="md:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition focus:outline-none focus:ring-2 focus:ring-blue-500"
             onClick={() => setSidebarOpen(false)}
+            aria-label="Close sidebar"
           >
             <X className="w-6 h-6" />
           </button>
@@ -44,17 +47,25 @@ export default function SidebarLayout({
             href="/onboarding"
             icon={<Brain />}
             label="Your Profile"
+            setSidebarOpen={setSidebarOpen}
           />
           <SidebarLink
             href="/upload"
             icon={<Upload />}
             label="Upload & Analyze"
+            setSidebarOpen={setSidebarOpen}
           />
-          <SidebarLink href="/history" icon={<BarChart2 />} label="Analysis" />
+          <SidebarLink
+            href="/history"
+            icon={<BarChart2 />}
+            label="Analysis"
+            setSidebarOpen={setSidebarOpen}
+          />
           <SidebarLink
             href="/chat"
             icon={<MessageCircle />}
             label="Trading Chat"
+            setSidebarOpen={setSidebarOpen}
           />
         </nav>
       </div>
@@ -64,7 +75,8 @@ export default function SidebarLayout({
         <div className="md:hidden px-4 py-3 bg-white border-b shadow-sm flex items-center justify-between">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="text-gray-700 hover:text-blue-700"
+            className="text-gray-700 hover:text-blue-700 p-2 rounded-full transition focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Open sidebar"
           >
             <Menu className="w-6 h-6" />
           </button>
@@ -83,15 +95,23 @@ function SidebarLink({
   href,
   icon,
   label,
+  setSidebarOpen,
 }: {
   href: string;
   icon: React.ReactNode;
   label: string;
+  setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+  const pathname = usePathname();
+  const isActive = pathname === href;
+
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 px-4 py-2 rounded-lg group transition-all duration-200 font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-800"
+      onClick={() => setSidebarOpen(false)}
+      className={`flex items-center gap-3 px-4 py-2 rounded-lg group transition-all duration-200 font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-800 ${
+        isActive ? "bg-blue-100 text-blue-800" : ""
+      }`}
     >
       <span className="text-xl transform group-hover:translate-x-1 transition-transform duration-200">
         {icon}

@@ -1,7 +1,9 @@
+// app/chat/page.tsx
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { MessageCircle, Loader2 } from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";
@@ -93,24 +95,30 @@ export default function TradingCoachChat() {
   };
 
   return (
-    <main className="max-w-3xl mx-auto px-6 py-12 relative">
-      <h1 className="text-4xl font-bold text-blue-800 mb-6">Trading Coach</h1>
+    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-12 min-h-screen relative">
+      <h1 className="text-4xl font-extrabold text-blue-800 mb-6 flex items-center gap-2">
+        Trading Coach
+      </h1>
 
       <button
         onClick={clearChat}
-        className="absolute top-6 right-6 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl shadow-sm text-sm"
+        className="absolute top-6 right-6 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-2 rounded-xl shadow-lg transition-all duration-200 text-sm"
+        aria-label="Clear chat"
       >
         Clear Chat
       </button>
 
       <div
         ref={chatRef}
-        className="bg-white rounded-xl border border-gray-300 h-[500px] overflow-y-auto px-6 py-4 shadow-sm mb-6 space-y-4"
+        className="bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200 h-[600px] sm:h-[500px] overflow-y-auto px-6 py-4 shadow-xl mb-6 space-y-4 animate-fade-in"
       >
         {messages.length === 0 && (
-          <p className="text-gray-500 italic text-center mt-24 text-gray-900">
-            Ask your trading coach...
-          </p>
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <MessageCircle className="w-16 h-16 text-gray-400 mb-4 animate-pulse" />
+            <p className="text-gray-500 italic text-lg">
+              Start chatting with your trading coach...
+            </p>
+          </div>
         )}
 
         {messages.map((msg, i) => (
@@ -120,40 +128,45 @@ export default function TradingCoachChat() {
               msg.role === "user" ? "justify-end" : "justify-start"
             }`}
           >
-            {msg.role === "user" ? (
-              <div className="max-w-[80%] px-4 py-2 rounded-2xl text-sm whitespace-pre-line bg-blue-100 text-blue-900">
-                {msg.text}
-              </div>
-            ) : (
-              <div
-                className="max-w-[80%] px-4 py-2 rounded-2xl text-sm whitespace-pre-line bg-gray-100 text-gray-800"
-                dangerouslySetInnerHTML={{ __html: msg.text }}
-              />
-            )}
+            <div
+              className={`max-w-[85%] px-5 py-3 rounded-2xl text-sm whitespace-pre-line shadow-md transition-all duration-300 ${
+                msg.role === "user"
+                  ? "bg-gradient-to-br from-blue-100 to-blue-200 text-blue-900"
+                  : "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-800"
+              } ${
+                msg.role === "user"
+                  ? "animate-slide-in-right"
+                  : "animate-slide-in-left"
+              }`}
+              dangerouslySetInnerHTML={{ __html: msg.text }}
+            />
           </div>
         ))}
 
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 text-gray-500 px-4 py-2 rounded-2xl text-sm animate-pulse">
+            <div className="bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 px-5 py-3 rounded-2xl text-sm shadow-md animate-pulse">
+              <Loader2 className="w-5 h-5 inline animate-spin mr-2" />{" "}
               Thinking...
             </div>
           </div>
         )}
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex gap-3 items-center">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="flex-1 border border-gray-300 px-4 py-2 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300 transition text-gray-900"
+          className="flex-1 border border-gray-200 bg-white px-5 py-3 rounded-xl shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all text-gray-900 placeholder-gray-400"
           placeholder="Ask your trading coach..."
+          aria-label="Chat input"
         />
         <button
           onClick={handleSubmit}
-          className="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-6 py-2 rounded-xl transition"
+          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition-all duration-200"
+          aria-label="Send message"
         >
           Send
         </button>
