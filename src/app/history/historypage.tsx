@@ -1,3 +1,4 @@
+// app/history/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -24,41 +25,11 @@ interface Analysis {
   supportResistance?: SupportResistance[];
 }
 
-// Hook para detectar swipe hacia abajo
-function useSwipeDown(onSwipeDown: () => void, threshold = 100) {
-  useEffect(() => {
-    let touchStartY = 0;
-
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStartY = e.touches[0].clientY;
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      const touchEndY = e.changedTouches[0].clientY;
-      if (touchEndY - touchStartY > threshold) {
-        onSwipeDown();
-      }
-    };
-
-    window.addEventListener("touchstart", handleTouchStart);
-    window.addEventListener("touchend", handleTouchEnd);
-
-    return () => {
-      window.removeEventListener("touchstart", handleTouchStart);
-      window.removeEventListener("touchend", handleTouchEnd);
-    };
-  }, [onSwipeDown, threshold]);
-}
-
 export default function HistoryPage() {
   const [history, setHistory] = useState<Analysis[]>([]);
   const [selected, setSelected] = useState<Analysis | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const searchParams = useSearchParams();
-
-  useSwipeDown(() => {
-    if (isOpen) closeModal();
-  });
 
   useEffect(() => {
     const stored = localStorage.getItem("tradingcoach_history");
@@ -110,35 +81,50 @@ export default function HistoryPage() {
     selected?.supportResistance && selected.supportResistance.length > 0;
 
   return (
-    <main className="max-w-6xl mx-auto px-4 sm:px-6 py-20">
-      <h1 className="text-3xl font-bold text-blue-800 mb-6 text-center">
-        Analysis
-      </h1>
+    <main className="w-full px-4 sm:px-6 py-20">
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+        <h1 className="text-3xl font-bold text-blue-800 text-center sm:text-left w-full sm:w-auto">
+          Analysis
+        </h1>
+        {history.length > 0 && (
+          <button
+            onClick={handleClearAll}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl shadow-sm"
+          >
+            Clear All Analysis
+          </button>
+        )}
+      </div>
 
       {history.length === 0 ? (
         <p className="text-center text-gray-500">No analysis yet.</p>
       ) : (
         <>
-          <div className="flex justify-end mb-4">
-            <button
-              onClick={handleClearAll}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl shadow-sm"
+          {/* Table for larger screens */}
+          <div className="hidden md:block overflow-x-auto">
+            <table
+              className="w-full table-auto text-sm border border-gray-200 rounded-lg shadow"
+              aria-label="Analysis History Table"
             >
-              Clear All Analysis
-            </button>
-          </div>
-
-          <div className="overflow-x-auto rounded-xl shadow border border-gray-200">
-            <table className="min-w-full table-auto text-sm">
               <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
                 <tr>
-                  <th className="py-3 px-4 text-left">Date</th>
-                  <th className="py-3 px-4 text-left">Ticker</th>
-                  <th className="py-3 px-4 text-left">Price</th>
-                  <th className="py-3 px-4 text-left">Timeframe</th>
-                  <th className="py-3 px-4 text-left">Recommendation</th>
-                  <th className="py-3 px-4 text-left"></th>
-                  <th className="py-3 px-4 text-left"></th>
+                  <th className="py-3 px-4 text-left" scope="col">
+                    Date
+                  </th>
+                  <th className="py-3 px-4 text-left" scope="col">
+                    Ticker
+                  </th>
+                  <th className="py-3 px-4 text-left" scope="col">
+                    Price
+                  </th>
+                  <th className="py-3 px-4 text-left" scope="col">
+                    Timeframe
+                  </th>
+                  <th className="py-3 px-4 text-left" scope="col">
+                    Recommendation
+                  </th>
+                  <th className="py-3 px-4 text-left" scope="col"></th>
+                  <th className="py-3 px-4 text-left" scope="col"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -181,6 +167,53 @@ export default function HistoryPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Card layout for mobile screens */}
+          <div className="md:hidden space-y-4">
+            {history.map((entry) => (
+              <div
+                key={entry.id}
+                className="border border-gray-200 rounded-lg shadow p-4 bg-white"
+                role="region"
+                aria-label={`Analysis for ${entry.ticker}`}
+              >
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="font-semibold text-gray-600">Date</div>
+                  <div>{entry.date.split("T")[0]}</div>
+                  <div className="font-semibold text-gray-600">Ticker</div>
+                  <div>{entry.ticker}</div>
+                  <div className="font-semibold text-gray-600">Price</div>
+                  <div>{entry.price}</div>
+                  <div className="font-semibold text-gray-600">Timeframe</div>
+                  <div>{entry.timeframe}</div>
+                  <div className="font-semibold text-gray-600">
+                    Recommendation
+                  </div>
+                  <div
+                    className={`font-semibold ${getColorClass(
+                      entry.recommendation
+                    )}`}
+                  >
+                    {entry.recommendation}
+                  </div>
+                </div>
+                <div className="flex justify-end gap-4 mt-4">
+                  <button
+                    onClick={() => openModal(entry)}
+                    className="text-blue-600 hover:underline font-medium"
+                  >
+                    View
+                  </button>
+                  <button
+                    onClick={() => handleDelete(entry.id)}
+                    className="text-red-600 hover:underline font-medium"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </>
       )}

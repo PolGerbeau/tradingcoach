@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Brain, Upload, BarChart2, MessageCircle, Menu, X } from "lucide-react";
+import Link from "next/link";
 
 export default function SidebarLayout({
   children,
@@ -19,7 +20,7 @@ export default function SidebarLayout({
   }, []);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen ">
       {/* Sidebar */}
       <div
         className={`fixed z-40 inset-y-0 left-0 w-64 bg-white border-r shadow-md px-6 py-8 space-y-8 transform transition-transform duration-300 md:static md:translate-x-0 ${
@@ -70,7 +71,7 @@ export default function SidebarLayout({
           <h2 className="text-lg font-semibold text-blue-700">TradingCoach</h2>
           <div className="w-6" />
         </div>
-        <main className="flex-1 p-6 md:p-10 bg-gradient-to-b from-white to-gray-50 transition-all duration-300 ease-in-out overflow-y-auto">
+        <main className="flex-1 px-4 sm:px-6 md:px-10 py-6 md:py-10 bg-gradient-to-b from-white to-gray-50 overflow-x-auto overflow-y-auto">
           {children}
         </main>
       </div>
@@ -88,7 +89,7 @@ function SidebarLink({
   label: string;
 }) {
   return (
-    <a
+    <Link
       href={href}
       className="flex items-center gap-3 px-4 py-2 rounded-lg group transition-all duration-200 font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-800"
     >
@@ -96,6 +97,6 @@ function SidebarLink({
         {icon}
       </span>
       <span className="text-base">{label}</span>
-    </a>
+    </Link>
   );
 }
