@@ -1,6 +1,10 @@
-"use client";
+import { Suspense } from "react";
 import HistoryPage from "./historypage";
 
 export default function Page() {
-  return <HistoryPage />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <HistoryPage />
+    </Suspense>
+  );
 }
