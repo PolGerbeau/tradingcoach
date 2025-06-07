@@ -24,7 +24,7 @@ interface Analysis {
   supportResistance?: SupportResistance[];
 }
 
-export default function HistoryPage() {
+export default function InnerHistoryPage() {
   const [history, setHistory] = useState<Analysis[]>([]);
   const [selected, setSelected] = useState<Analysis | null>(null);
   const [isOpen, setIsOpen] = useState(false);
