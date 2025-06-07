@@ -11,7 +11,14 @@ interface Message {
 }
 
 export default function TradingCoachChat() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  // Inicializa messages desde localStorage solo una vez
+  const initialMessages =
+    typeof window !== "undefined"
+      ? localStorage.getItem("tradingcoach_chat")
+      : null;
+  const [messages, setMessages] = useState<Message[]>(
+    initialMessages ? JSON.parse(initialMessages) : []
+  );
   const [input, setInput] = useState("");
   const [profile, setProfile] = useState<any>(null);
   const [pastAnalyses, setPastAnalyses] = useState<any[]>([]);
@@ -19,33 +26,32 @@ export default function TradingCoachChat() {
   const chatRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    console.log("Loading initial data - Messages:", messages); // Solo para depuración
     const savedProfile = localStorage.getItem("tradingcoach_profile");
-    if (savedProfile) setProfile(JSON.parse(savedProfile));
+    if (savedProfile) {
+      try {
+        setProfile(JSON.parse(savedProfile));
+      } catch (e) {
+        console.error("Invalid profile data:", e);
+      }
+    }
 
     const savedAnalyses = localStorage.getItem("tradingcoach_history");
     if (savedAnalyses) {
       try {
         setPastAnalyses(JSON.parse(savedAnalyses));
       } catch (e) {
-        console.error("Invalid analysis history in localStorage");
-      }
-    }
-
-    const savedMessages = localStorage.getItem("tradingcoach_chat");
-    if (savedMessages) {
-      try {
-        setMessages(JSON.parse(savedMessages));
-      } catch (e) {
-        console.error("Invalid chat history in localStorage");
+        console.error("Invalid analysis history:", e);
       }
     }
   }, []);
 
   useEffect(() => {
+    console.log("Saving messages to localStorage:", messages);
+    localStorage.setItem("tradingcoach_chat", JSON.stringify(messages));
     if (chatRef.current) {
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
-    localStorage.setItem("tradingcoach_chat", JSON.stringify(messages));
   }, [messages]);
 
   const addMessage = (msg: Message) => {
@@ -53,6 +59,7 @@ export default function TradingCoachChat() {
   };
 
   const handleSubmit = async () => {
+    console.log("Before submit, messages:", messages);
     if (!input.trim()) return;
 
     const userMessage: Message = { role: "user", text: input };
@@ -72,13 +79,15 @@ export default function TradingCoachChat() {
     });
 
     const data = await res.json();
+    console.log("API response:", data);
 
     addMessage({
       role: "assistant",
-      text: data.reply?.replace(
-        /_UPLOAD_LINK_/g,
-        '<a href="/upload" class="text-blue-600 underline">this page</a>'
-      ),
+      text:
+        data.reply?.replace(
+          /_UPLOAD_LINK_/g,
+          '<a href="/upload" class="text-blue-600 underline">this page</a>'
+        ) || "No response from coach.",
     });
     setLoading(false);
   };
@@ -88,7 +97,8 @@ export default function TradingCoachChat() {
   };
 
   const clearChat = () => {
-    if (confirm("Are you sure you want to clear the conversation?")) {
+    if (window.confirm("Are you sure you want to clear the conversation?")) {
+      console.log("Clearing chat, messages before:", messages);
       setMessages([]);
       localStorage.removeItem("tradingcoach_chat");
     }
@@ -97,6 +107,7 @@ export default function TradingCoachChat() {
   return (
     <main className="max-w-4xl mx-auto px-4 sm:px-6 py-12 min-h-screen relative">
       <h1 className="text-4xl font-extrabold text-blue-800 mb-6 flex items-center gap-2">
+        <MessageCircle className="w-8 h-8 text-blue-600" />
         Trading Coach
       </h1>
 
@@ -129,7 +140,7 @@ export default function TradingCoachChat() {
             }`}
           >
             <div
-              className={`max-w-[85%] px-5 py-3 rounded-2xl text-sm whitespace-pre-line shadow-md transition-all duration-300 ${
+              className={`max-w-[85%] px-5 py-3 rounded-2xl text-sm whitespace-pre-line transition-all duration-300 ${
                 msg.role === "user"
                   ? "bg-gradient-to-br from-blue-100 to-blue-200 text-blue-900"
                   : "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-800"
@@ -145,7 +156,7 @@ export default function TradingCoachChat() {
 
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 px-5 py-3 rounded-2xl text-sm shadow-md animate-pulse">
+            <div className="bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 px-5 py-3 rounded-2xl text-sm animate-pulse">
               <Loader2 className="w-5 h-5 inline animate-spin mr-2" />{" "}
               Thinking...
             </div>
