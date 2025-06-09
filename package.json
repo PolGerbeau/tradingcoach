@@ -2,11 +2,10 @@
   "name": "tradingcoach",
   "version": "0.1.0",
   "private": true,
-  "type": "module", 
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "tsx server.ts", 
+    "start": "ts-node server.cjs",
     "lint": "next lint"
   },
   "dependencies": {
@@ -17,8 +16,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.2",
-    "uuid": "^11.1.0",
-    "tsx": "^4.0.0" 
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
