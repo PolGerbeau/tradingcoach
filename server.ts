@@ -1,0 +1,23 @@
+// server.ts
+import { createServer } from "http";
+import next from "next";
+import { parse } from "url";
+
+const port = parseInt(process.env.PORT || "8080", 10);
+const dev = process.env.NODE_ENV !== "production";
+const app = next({ dev });
+const handle = app.getRequestHandler();
+
+app.prepare().then(() => {
+  const server = createServer((req, res) => {
+    const parsedUrl = parse(req.url || "", true);
+    handle(req, res, parsedUrl);
+  });
+
+  // ⏱️ Extend timeout to 30 seconds (30000 ms)
+  server.timeout = 30000;
+
+  server.listen(port, () => {
+    console.log(`🚀 Ready on http://localhost:${port}`);
+  });
+});
