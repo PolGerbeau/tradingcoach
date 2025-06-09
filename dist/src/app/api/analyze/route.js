@@ -26,9 +26,9 @@ async function POST(req) {
     const now = new Date();
     try {
         const [gptRaw, claudeRaw, geminiRaw] = await Promise.all([
-            withTimeout(analyzeWithOpenAI(base64Image, profile), 12000),
-            withTimeout(analyzeWithClaude(base64Image, profile), 12000),
-            withTimeout(analyzeWithGemini(base64Image, profile), 12000),
+            withTimeout(analyzeWithOpenAI(base64Image, profile), 90000),
+            withTimeout(analyzeWithClaude(base64Image, profile), 90000),
+            withTimeout(analyzeWithGemini(base64Image, profile), 90000),
         ]);
         console.log("🔍 Raw OpenAI response ------------------ :\n", gptRaw);
         console.log("🔍 Raw Claude response ------------------ :\n", claudeRaw);
