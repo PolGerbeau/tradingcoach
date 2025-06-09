@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "tsc && next build",
-    "start": "node dist/server.js",
+    "start": "node dist/server.ts",
     "lint": "next lint"
   },
   "dependencies": {
