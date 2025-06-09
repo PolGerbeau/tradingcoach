@@ -85,78 +85,62 @@ export default function UploadPage() {
     formData.append("image", image);
     formData.append("profile", JSON.stringify(profile));
 
-    try {
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        body: formData,
-      });
+    const endpoints = [
+      { name: "OpenAI", url: "/api/analyze/openai" },
+      { name: "Claude", url: "/api/analyze/claude" },
+      { name: "Gemini", url: "/api/analyze/gemini" },
+    ];
 
-      if (!res.ok || !res.body) {
-        const errorText = await res.text();
-        toast.error("Server error: " + errorText);
-        setLoading(false);
-        return;
-      }
+    const collectedAnalyses: any[] = [];
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-      let buffer = "";
-      const collectedAnalyses: any[] = [];
+    await Promise.all(
+      endpoints.map(async ({ name, url }) => {
+        try {
+          const res = await fetch(url, {
+            method: "POST",
+            body: formData,
+          });
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop()!;
-
-        for (const line of lines) {
-          if (!line.trim()) continue;
-
-          try {
-            const data = JSON.parse(line);
-
-            if (data.error) {
-              toast.error(data.error);
-              setStatus((prev) => [...prev, `❌ ${data.source}`]);
-            } else {
-              collectedAnalyses.push(data);
-              setStatus((prev) => [...prev, `✅ ${data.source}`]);
-            }
-          } catch (err) {
-            console.warn("Could not parse line:", line);
+          if (!res.ok) {
+            const error = await res.text();
+            toast.error(`${name} error: ${error}`);
+            setStatus((prev) => [...prev, `❌ ${name}`]);
+            return;
           }
+
+          const { analysis } = await res.json();
+          collectedAnalyses.push(analysis);
+          setStatus((prev) => [...prev, `✅ ${name}`]);
+        } catch (err: any) {
+          console.error(`❌ ${name} failed:`, err);
+          toast.error(`${name} failed: ` + err.message);
+          setStatus((prev) => [...prev, `❌ ${name}`]);
         }
-      }
+      })
+    );
 
-      if (collectedAnalyses.length === 0) {
-        toast.error("No analysis received. Try again.");
-        setLoading(false);
-        return;
-      }
-
-      const id = collectedAnalyses[0]?.id || Date.now().toString();
-      const newEntry = {
-        id,
-        date: new Date().toISOString(),
-        chartImage: preview,
-        profileSnapshot: profile,
-        analyses: collectedAnalyses,
-      };
-
-      const existing = localStorage.getItem("tradingcoach_history");
-      const history = existing ? JSON.parse(existing) : [];
-      history.unshift(newEntry);
-      localStorage.setItem("tradingcoach_history", JSON.stringify(history));
-
+    if (collectedAnalyses.length === 0) {
+      toast.error("No analysis received. Try again.");
       setLoading(false);
-      router.push(`/history?id=${id}`);
-    } catch (err: any) {
-      console.error("❌ Upload failed:", err);
-      toast.error("Unexpected error: " + err.message);
-      setLoading(false);
+      return;
     }
+
+    const id = collectedAnalyses[0]?.id || Date.now().toString();
+    const newEntry = {
+      id,
+      date: new Date().toISOString(),
+      chartImage: preview,
+      profileSnapshot: profile,
+      analyses: collectedAnalyses,
+    };
+
+    const existing = localStorage.getItem("tradingcoach_history");
+    const history = existing ? JSON.parse(existing) : [];
+    history.unshift(newEntry);
+    localStorage.setItem("tradingcoach_history", JSON.stringify(history));
+
+    setLoading(false);
+    router.push(`/history?id=${id}`);
   };
 
   return (
