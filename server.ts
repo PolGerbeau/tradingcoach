@@ -14,7 +14,7 @@ app.prepare().then(() => {
     handle(req, res, parsedUrl);
   });
 
-  // ⏱️ Extend timeout to 30 seconds (30000 ms)
+  // ⏱️ Extend timeout to 30 seconds
   server.timeout = 30000;
 
   server.listen(port, () => {
