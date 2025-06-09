@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build && tsc server.ts --outDir dist",
+    "build": "tsc && next build",
     "start": "node dist/server.js",
     "lint": "next lint"
   },
