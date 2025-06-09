@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import OpenAI from "openai";
 import { v4 as uuidv4 } from "uuid";
 
-// Utilidad para limitar duración de promesas
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   const timeout = new Promise<never>((_, reject) =>
     setTimeout(() => reject(new Error("Timeout")), ms)
@@ -16,53 +15,59 @@ export async function POST(req: NextRequest) {
   const profile = formData.get("profile") as string;
 
   if (!file) {
-    return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+    return new Response("No file uploaded", { status: 400 });
   }
-
-  const start = Date.now(); // ⏱️ Start timer
 
   const bytes = await file.arrayBuffer();
   const base64Image = Buffer.from(bytes).toString("base64");
   const profileObj = JSON.parse(profile);
-  const now = new Date();
+  const chartImage = `data:image/png;base64,${base64Image}`;
+  const now = new Date().toISOString();
+  const encoder = new TextEncoder();
 
-  try {
-    const [gptRaw, claudeRaw, geminiRaw] = await Promise.all([
-      withTimeout(analyzeWithOpenAI(base64Image, profile), 12000),
-      withTimeout(analyzeWithClaude(base64Image, profile), 12000),
-      withTimeout(analyzeWithGemini(base64Image, profile), 12000),
-    ]);
+  const stream = new ReadableStream({
+    async start(controller) {
+      const send = (obj: any) =>
+        controller.enqueue(encoder.encode(JSON.stringify(obj) + "\n"));
 
-    console.log("🔍 Raw OpenAI response ------------------ :\n", gptRaw);
-    console.log("🔍 Raw Claude response ------------------ :\n", claudeRaw);
-    console.log("🔍 Raw Gemini response ------------------ :\n", geminiRaw);
+      const jobs = [
+        { fn: analyzeWithOpenAI, source: "OpenAI" },
+        { fn: analyzeWithClaude, source: "Claude" },
+        { fn: analyzeWithGemini, source: "Gemini" },
+      ];
 
-    const analyses = [
-      { raw: gptRaw, source: "OpenAI" },
-      { raw: claudeRaw, source: "Claude" },
-      { raw: geminiRaw, source: "Gemini" },
-    ].map(({ raw, source }) => ({
-      id: uuidv4(),
-      date: now.toISOString(),
-      chartImage: `data:image/png;base64,${base64Image}`,
-      profileSnapshot: profileObj,
-      source,
-      ticker: extractField(raw, "Ticker"),
-      price: extractField(raw, "Current price"),
-      timeframe: extractField(raw, "Timeframe"),
-      recommendation: extractField(raw, "Recommendation"),
-      reasoning: extractField(raw, "Reasoning"),
-      supportResistance: extractSupportResistance(raw),
-    }));
+      for (const { fn, source } of jobs) {
+        try {
+          const raw = await withTimeout(fn(base64Image, profile), 90000);
+          const analysis = {
+            id: uuidv4(),
+            date: now,
+            chartImage,
+            profileSnapshot: profileObj,
+            source,
+            ticker: extractField(raw, "Ticker"),
+            price: extractField(raw, "Current price"),
+            timeframe: extractField(raw, "Timeframe"),
+            recommendation: extractField(raw, "Recommendation"),
+            reasoning: extractField(raw, "Reasoning"),
+            supportResistance: extractSupportResistance(raw),
+          };
+          send(analysis);
+        } catch (err: any) {
+          send({
+            error: `Error analyzing with ${source}: ${err.message}`,
+            source,
+          });
+        }
+      }
 
-    const duration = Date.now() - start; // ⏱️ End timer
-    console.log(`✅ Total analysis time: ${duration} ms`);
+      controller.close();
+    },
+  });
 
-    return NextResponse.json({ analyses });
-  } catch (err: any) {
-    console.error("❌ Error in POST:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
+  return new Response(stream, {
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
+  });
 }
 
 async function analyzeWithOpenAI(
@@ -86,7 +91,6 @@ async function analyzeWithOpenAI(
     ],
     max_tokens: 500,
   });
-
   return response.choices[0]?.message?.content || "";
 }
 
@@ -123,9 +127,7 @@ async function analyzeWithClaude(
       ],
     }),
   });
-
   const data = await res.json();
-  console.log("📦 Claude full response:\n", JSON.stringify(data, null, 2));
   return data.content?.[0]?.text || "[⚠️ No content returned from Claude]";
 }
 
@@ -134,8 +136,7 @@ async function analyzeWithGemini(
   profile: string
 ): Promise<string> {
   const res = await fetch(
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" +
-      process.env.GEMINI_API_KEY,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -143,24 +144,15 @@ async function analyzeWithGemini(
         contents: [
           {
             parts: [
-              {
-                inlineData: {
-                  mimeType: "image/png",
-                  data: base64Image,
-                },
-              },
-              {
-                text: systemPrompt(profile),
-              },
+              { inlineData: { mimeType: "image/png", data: base64Image } },
+              { text: systemPrompt(profile) },
             ],
           },
         ],
       }),
     }
   );
-
   const data = await res.json();
-  console.log("📦 Gemini full response:\n", JSON.stringify(data, null, 2));
   return (
     data.candidates?.[0]?.content?.parts?.[0]?.text ||
     "[⚠️ No content returned from Gemini]"
@@ -194,17 +186,13 @@ function extractField(text: string, label: string): string {
     `\\s*${escapedLabel}[:\\-\\s]+(.+?)(?=(\\r?\\n|\\n\\n|\\n\\-\\-|$))`,
     "i"
   );
-
   const match = text.match(regex);
   if (!match) return "";
-
   const result = match[1].trim();
-
   if (label.toLowerCase().includes("recommendation")) {
-    const word = result.split(/\s+/)[0].toUpperCase();
+    const word = result.split(/\\s+/)[0].toUpperCase();
     return ["BUY", "SELL", "HOLD"].includes(word) ? word : "";
   }
-
   return result;
 }
 
@@ -215,7 +203,6 @@ function extractSupportResistance(text: string): {
 }[] {
   const regex = /(Support|Resistance)[:\s]*([0-9.]+)\s*[–-]\s*(.+)/gi;
   const matches = [...text.matchAll(regex)];
-
   return matches.map((m) => ({
     type: m[1] as "Support" | "Resistance",
     level: m[2],
