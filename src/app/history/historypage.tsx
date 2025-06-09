@@ -1,4 +1,3 @@
-// app/history/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -12,17 +11,23 @@ interface SupportResistance {
   reason: string;
 }
 
-interface Analysis {
+interface LLMAnalysis {
   id: string;
-  date: string;
-  chartImage: string;
-  profileSnapshot: any;
+  source: string;
   ticker: string;
   price: string;
   timeframe: string;
   recommendation: string;
   reasoning: string;
   supportResistance?: SupportResistance[];
+}
+
+interface Analysis {
+  id: string;
+  date: string;
+  chartImage: string;
+  profileSnapshot: any;
+  analyses: LLMAnalysis[];
 }
 
 export default function HistoryPage() {
@@ -92,9 +97,6 @@ export default function HistoryPage() {
     }
   };
 
-  const hasSupportResistance =
-    selected?.supportResistance && selected.supportResistance.length > 0;
-
   return (
     <main className="w-full px-4 sm:px-6 py-20">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
@@ -115,126 +117,128 @@ export default function HistoryPage() {
         <p className="text-center text-gray-500">No analysis yet.</p>
       ) : (
         <>
-          {/* Table for larger screens */}
           <div className="hidden md:block overflow-x-auto">
-            <table
-              className="w-full table-auto text-sm border border-gray-200 rounded-lg shadow"
-              aria-label="Analysis History Table"
-            >
+            <table className="w-full table-auto text-sm border border-gray-200 rounded-lg shadow">
               <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
                 <tr>
-                  <th className="py-3 px-4 text-left" scope="col">
-                    Date
-                  </th>
-                  <th className="py-3 px-4 text-left" scope="col">
-                    Ticker
-                  </th>
-                  <th className="py-3 px-4 text-left" scope="col">
-                    Price
-                  </th>
-                  <th className="py-3 px-4 text-left" scope="col">
-                    Timeframe
-                  </th>
-                  <th className="py-3 px-4 text-left" scope="col">
-                    Recommendation
-                  </th>
-                  <th className="py-3 px-4 text-left" scope="col"></th>
-                  <th className="py-3 px-4 text-left" scope="col"></th>
+                  <th className="py-3 px-4 text-left">Date</th>
+                  <th className="py-3 px-4 text-left">Ticker</th>
+                  <th className="py-3 px-4 text-left">Price</th>
+                  <th className="py-3 px-4 text-left">Timeframe</th>
+                  <th className="py-3 px-4 text-left">Recommendations</th>
+                  <th className="py-3 px-4 text-left"></th>
+                  <th className="py-3 px-4 text-left"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {history.map((entry) => (
-                  <tr key={entry.id} className="hover:bg-gray-50 transition">
-                    <td className="py-3 px-4 text-gray-600">
-                      {entry.date.split("T")[0]}
-                    </td>
-                    <td className="py-3 px-4 text-gray-600">{entry.ticker}</td>
-                    <td className="py-3 px-4 text-gray-600">{entry.price}</td>
-                    <td className="py-3 px-4 text-gray-600">
-                      {entry.timeframe}
-                    </td>
-                    <td className="py-3 px-4 font-semibold">
-                      <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full transition-all duration-200 ${getColorClass(
-                          entry.recommendation
-                        )}`}
-                      >
-                        {getIcon(entry.recommendation)}
-                        <span className="uppercase">
-                          {entry.recommendation}
-                        </span>
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <button
-                        onClick={() => openModal(entry)}
-                        className="text-blue-600 hover:underline font-medium"
-                      >
-                        View
-                      </button>
-                    </td>
-                    <td className="py-3 px-4">
-                      <button
-                        onClick={() => handleDelete(entry.id)}
-                        className="text-red-600 hover:underline font-medium"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {history
+                  .filter(
+                    (entry) =>
+                      Array.isArray(entry.analyses) && entry.analyses.length > 0
+                  )
+                  .map((entry) => (
+                    <tr key={entry.id} className="hover:bg-gray-50 transition">
+                      <td className="py-3 px-4 text-gray-600">
+                        {entry.date.split("T")[0]}
+                      </td>
+                      <td className="py-3 px-4 text-gray-600">
+                        {entry.analyses?.[0]?.ticker || "-"}
+                      </td>
+                      <td className="py-3 px-4 text-gray-600">
+                        {entry.analyses?.[0]?.price || "-"}
+                      </td>
+                      <td className="py-3 px-4 text-gray-600">
+                        {entry.analyses?.[0]?.timeframe || "-"}
+                      </td>
+                      <td className="py-3 px-4 font-semibold flex flex-wrap gap-1">
+                        {entry.analyses.map((a) => (
+                          <span
+                            key={a.id}
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${getColorClass(
+                              a.recommendation
+                            )}`}
+                            title={`${a.source}: ${a.recommendation}`}
+                          >
+                            {getIcon(a.recommendation)}
+                            {a.source}: {a.recommendation}
+                          </span>
+                        ))}
+                      </td>
+                      <td className="py-3 px-4">
+                        <button
+                          onClick={() => openModal(entry)}
+                          className="text-blue-600 hover:underline font-medium"
+                        >
+                          View
+                        </button>
+                      </td>
+                      <td className="py-3 px-4">
+                        <button
+                          onClick={() => handleDelete(entry.id)}
+                          className="text-red-600 hover:underline font-medium"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
 
-          {/* Card layout for mobile screens */}
           <div className="md:hidden space-y-4">
-            {history.map((entry) => (
-              <div
-                key={entry.id}
-                className="border border-gray-200 rounded-lg shadow p-4 bg-white"
-                role="region"
-                aria-label={`Analysis for ${entry.ticker}`}
-              >
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="font-semibold text-gray-600">Date</div>
-                  <div>{entry.date.split("T")[0]}</div>
-                  <div className="font-semibold text-gray-600">Ticker</div>
-                  <div>{entry.ticker}</div>
-                  <div className="font-semibold text-gray-600">Price</div>
-                  <div>{entry.price}</div>
-                  <div className="font-semibold text-gray-600">Timeframe</div>
-                  <div>{entry.timeframe}</div>
-                  <div className="font-semibold text-gray-600">
-                    Recommendation
+            {history
+              .filter(
+                (entry) =>
+                  Array.isArray(entry.analyses) && entry.analyses.length > 0
+              )
+              .map((entry) => (
+                <div
+                  key={entry.id}
+                  className="border border-gray-200 rounded-lg shadow p-4 bg-white"
+                >
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="font-semibold text-gray-600">Date</div>
+                    <div>{entry.date.split("T")[0]}</div>
+                    <div className="font-semibold text-gray-600">Ticker</div>
+                    <div>{entry.analyses?.[0]?.ticker || "-"}</div>
+                    <div className="font-semibold text-gray-600">Price</div>
+                    <div>{entry.analyses?.[0]?.price || "-"}</div>
+                    <div className="font-semibold text-gray-600">Timeframe</div>
+                    <div>{entry.analyses?.[0]?.timeframe || "-"}</div>
+                    <div className="font-semibold text-gray-600">
+                      Recommendations
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {entry.analyses.map((a) => (
+                        <span
+                          key={a.id}
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${getColorClass(
+                            a.recommendation
+                          )}`}
+                        >
+                          {getIcon(a.recommendation)}
+                          {a.source}: {a.recommendation}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex items-center">
-                    <span
-                      className={`inline-flex items-center px-3 py-1 rounded-full transition-all duration-200 ${getColorClass(
-                        entry.recommendation
-                      )}`}
+                  <div className="flex justify-end gap-4 mt-4">
+                    <button
+                      onClick={() => openModal(entry)}
+                      className="text-blue-600 hover:underline font-medium"
                     >
-                      {getIcon(entry.recommendation)}
-                      <span className="uppercase">{entry.recommendation}</span>
-                    </span>
+                      View
+                    </button>
+                    <button
+                      onClick={() => handleDelete(entry.id)}
+                      className="text-red-600 hover:underline font-medium"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
-                <div className="flex justify-end gap-4 mt-4">
-                  <button
-                    onClick={() => openModal(entry)}
-                    className="text-blue-600 hover:underline font-medium"
-                  >
-                    View
-                  </button>
-                  <button
-                    onClick={() => handleDelete(entry.id)}
-                    className="text-red-600 hover:underline font-medium"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))}
           </div>
         </>
       )}
@@ -249,26 +253,16 @@ export default function HistoryPage() {
             {selected && (
               <>
                 <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-t-2xl shadow-lg flex justify-between items-center">
-                  <h2 className="text-xl font-bold">{selected.ticker}</h2>
-                  <div className="flex items-center space-x-4">
-                    <span
-                      className={`inline-flex items-center px-3 py-1 rounded-full ${getColorClass(
-                        selected.recommendation
-                      )}`}
-                    >
-                      {getIcon(selected.recommendation)}
-                      <span className="uppercase">
-                        {selected.recommendation}
-                      </span>
-                    </span>
-                    <button
-                      onClick={closeModal}
-                      aria-label="Close"
-                      className="text-white hover:text-gray-200 transition"
-                    >
-                      <X className="w-6 h-6" />
-                    </button>
-                  </div>
+                  <h2 className="text-xl font-bold">
+                    {selected.analyses?.[0]?.ticker || ""}
+                  </h2>
+                  <button
+                    onClick={closeModal}
+                    aria-label="Close"
+                    className="text-white hover:text-gray-200 transition"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
                 </div>
 
                 <div className="relative">
@@ -280,34 +274,44 @@ export default function HistoryPage() {
                   />
                 </div>
 
-                <div className="bg-gray-50 border-t border-gray-200 rounded-lg p-4 text-gray-700 shadow-inner space-y-4">
-                  <div className="text-left space-y-3">
-                    <p className="text-lg font-semibold text-gray-800 mb-2">
-                      Reasoning for {selected.recommendation}:
-                    </p>
-                    <p className="text-base leading-relaxed">
-                      {selected.reasoning}
-                    </p>
-                  </div>
-
-                  {hasSupportResistance && (
-                    <div>
-                      <p className="text-lg font-semibold text-gray-800 mb-2">
-                        Support/Resistance Levels:
-                      </p>
-                      <ul className="list-disc pl-5 space-y-2">
-                        {selected.supportResistance!.map((s, idx) => (
-                          <li key={idx} className="text-base">
-                            <span className="font-medium">
-                              {s.type} @ {s.level}:
-                            </span>{" "}
-                            {s.reason}
-                          </li>
-                        ))}
-                      </ul>
+                {selected.analyses.map((a) => (
+                  <div
+                    key={a.id}
+                    className="bg-gray-50 border-t border-gray-200 rounded-lg p-4 text-gray-700 shadow-inner space-y-4"
+                  >
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        {a.source} Recommendation: {a.recommendation}
+                      </h3>
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full ${getColorClass(
+                          a.recommendation
+                        )}`}
+                      >
+                        {getIcon(a.recommendation)}
+                        <span className="uppercase">{a.recommendation}</span>
+                      </span>
                     </div>
-                  )}
-                </div>
+                    <p className="text-base leading-relaxed">{a.reasoning}</p>
+                    {a.supportResistance && a.supportResistance.length > 0 && (
+                      <div>
+                        <p className="text-base font-semibold mt-2">
+                          Support/Resistance Levels:
+                        </p>
+                        <ul className="list-disc pl-5 space-y-1">
+                          {a.supportResistance.map((s, idx) => (
+                            <li key={idx} className="text-base">
+                              <span className="font-medium">
+                                {s.type} @ {s.level}:
+                              </span>{" "}
+                              {s.reason}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ))}
 
                 {selected.profileSnapshot && (
                   <div className="bg-gray-50 border-t border-gray-200 rounded-lg p-4 text-gray-700 shadow-inner space-y-4">

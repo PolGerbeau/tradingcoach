@@ -1,3 +1,4 @@
+// app/upload/page.tsx
 "use client";
 
 import { useState, useEffect, DragEvent } from "react";
@@ -60,21 +61,30 @@ export default function UploadPage() {
       body: formData,
     });
 
-    const { analysis } = await res.json();
+    const { analyses } = await res.json();
 
-    if (!analysis) {
+    if (!analyses || !Array.isArray(analyses)) {
       alert("Analysis failed. Please try again.");
       setLoading(false);
       return;
     }
 
+    const id = analyses[0]?.id || Date.now().toString();
+    const newEntry = {
+      id,
+      date: new Date().toISOString(),
+      chartImage: preview,
+      profileSnapshot: profile,
+      analyses,
+    };
+
     const existing = localStorage.getItem("tradingcoach_history");
     const history = existing ? JSON.parse(existing) : [];
-    history.unshift(analysis);
+    history.unshift(newEntry);
     localStorage.setItem("tradingcoach_history", JSON.stringify(history));
 
     setLoading(false);
-    router.push(`/history?id=${analysis.id}`);
+    router.push(`/history?id=${id}`);
   };
 
   return (
@@ -83,10 +93,9 @@ export default function UploadPage() {
         Upload & Analyze
       </h1>
       <p className="text-gray-600 mb-8">
-        <span>
-          <strong>Upload a screenshot</strong> of your trading chart (e.g., from
-          TradingView) to get personalized AI analysis based on your profile.
-        </span>
+        <strong>Upload a screenshot</strong> of your trading chart (e.g., from
+        TradingView) to get personalized AI analysis from multiple LLMs, based
+        on your trading profile and trading strategy.
       </p>
 
       <div
