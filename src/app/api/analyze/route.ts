@@ -19,6 +19,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
   }
 
+  const start = Date.now(); // ⏱️ Start timer
+
   const bytes = await file.arrayBuffer();
   const base64Image = Buffer.from(bytes).toString("base64");
   const profileObj = JSON.parse(profile);
@@ -52,6 +54,9 @@ export async function POST(req: NextRequest) {
       reasoning: extractField(raw, "Reasoning"),
       supportResistance: extractSupportResistance(raw),
     }));
+
+    const duration = Date.now() - start; // ⏱️ End timer
+    console.log(`✅ Total analysis time: ${duration} ms`);
 
     return NextResponse.json({ analyses });
   } catch (err: any) {
