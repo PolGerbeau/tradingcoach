@@ -67,22 +67,38 @@ export default function UploadPage() {
   };
 
   const handleUpload = async () => {
-    if (!image || !base64Image) {
+    if (!image) {
       toast.error("Please select an image first.");
       return;
     }
 
+    if (image.size > 5 * 1024 * 1024) {
+      toast.error("Image too large. Max 5MB.");
+      return;
+    }
+
     setLoading(true);
+    console.log("📤 Uploading image...");
+    console.log("📸 Image file:", image);
+    console.log("🧠 Profile:", profile);
 
     const formData = new FormData();
     formData.append("image", image);
     formData.append("profile", JSON.stringify(profile));
 
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => {
+        controller.abort();
+      }, 20000); // 20s timeout
+
       const res = await fetch("/api/analyze", {
         method: "POST",
         body: formData,
+        signal: controller.signal,
       });
+
+      clearTimeout(timeout);
 
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
@@ -92,7 +108,10 @@ export default function UploadPage() {
         return;
       }
 
-      const { analyses } = await res.json();
+      const json = await res.json();
+      console.log("📩 Response from server:", json);
+
+      const { analyses } = json;
 
       if (!analyses || !Array.isArray(analyses)) {
         toast.error("Analysis failed. Please try again.");
@@ -104,7 +123,7 @@ export default function UploadPage() {
       const newEntry = {
         id,
         date: new Date().toISOString(),
-        chartImage: `data:image/png;base64,${base64Image}`,
+        chartImage: preview,
         profileSnapshot: profile,
         analyses,
       };
@@ -118,7 +137,11 @@ export default function UploadPage() {
       router.push(`/history?id=${id}`);
     } catch (err: any) {
       console.error("❌ Unexpected error:", err);
-      toast.error("Unexpected error: " + err.message);
+      if (err.name === "AbortError") {
+        toast.error("Request timed out. Please try again.");
+      } else {
+        toast.error("Unexpected error: " + err.message);
+      }
       setLoading(false);
     }
   };
