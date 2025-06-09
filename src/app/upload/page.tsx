@@ -1,12 +1,13 @@
-// app/upload/page.tsx
 "use client";
 
 import { useState, useEffect, DragEvent } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function UploadPage() {
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [base64Image, setBase64Image] = useState<string | null>(null);
   const [profile, setProfile] = useState({});
   const [loading, setLoading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -17,15 +18,30 @@ export default function UploadPage() {
     if (saved) setProfile(JSON.parse(saved));
   }, []);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.split(",")[1]; // remove data:image/png;base64,
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setImage(file);
       setPreview(URL.createObjectURL(file));
+      const base64 = await fileToBase64(file);
+      setBase64Image(base64);
     }
   };
 
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+  const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
@@ -33,6 +49,8 @@ export default function UploadPage() {
     if (file && file.type.startsWith("image/")) {
       setImage(file);
       setPreview(URL.createObjectURL(file));
+      const base64 = await fileToBase64(file);
+      setBase64Image(base64);
     }
   };
 
@@ -49,44 +67,35 @@ export default function UploadPage() {
   };
 
   const handleUpload = async () => {
-    if (!image) return alert("Please select an image first.");
+    if (!image || !base64Image) {
+      toast.error("Please select an image first.");
+      return;
+    }
+
     setLoading(true);
 
-    try {
-      const formData = new FormData();
-      formData.append("image", image);
-      formData.append("profile", JSON.stringify(profile));
+    const formData = new FormData();
+    formData.append("image", image);
+    formData.append("profile", JSON.stringify(profile));
 
+    try {
       const res = await fetch("/api/analyze", {
         method: "POST",
         body: formData,
       });
 
       if (!res.ok) {
-        const text = await res.text();
-        console.error("❌ Server error response:", text);
-        alert("Server error: " + res.statusText);
+        const error = await res.json().catch(() => ({}));
+        console.error("❌ Server error:", error);
+        toast.error("Server error: " + (error?.error || res.statusText));
         setLoading(false);
         return;
       }
 
-      let json;
-      try {
-        json = await res.json();
-      } catch (err) {
-        console.error("❌ Error parsing JSON:", err);
-        const fallback = await res.text();
-        console.error("🔍 Raw response text:", fallback);
-        alert("Response error. Try again.");
-        setLoading(false);
-        return;
-      }
-
-      const { analyses } = json;
+      const { analyses } = await res.json();
 
       if (!analyses || !Array.isArray(analyses)) {
-        console.error("❌ Invalid 'analyses' data:", json);
-        alert("Analysis failed. Please try again.");
+        toast.error("Analysis failed. Please try again.");
         setLoading(false);
         return;
       }
@@ -95,7 +104,7 @@ export default function UploadPage() {
       const newEntry = {
         id,
         date: new Date().toISOString(),
-        chartImage: preview,
+        chartImage: `data:image/png;base64,${base64Image}`,
         profileSnapshot: profile,
         analyses,
       };
@@ -107,9 +116,9 @@ export default function UploadPage() {
 
       setLoading(false);
       router.push(`/history?id=${id}`);
-    } catch (error) {
-      console.error("❌ Upload failed:", error);
-      alert("Unexpected error. Please try again.");
+    } catch (err: any) {
+      console.error("❌ Unexpected error:", err);
+      toast.error("Unexpected error: " + err.message);
       setLoading(false);
     }
   };
@@ -122,7 +131,7 @@ export default function UploadPage() {
       <p className="text-gray-600 mb-8">
         <strong>Upload a screenshot</strong> of your trading chart (e.g., from
         TradingView) to get personalized AI analysis from multiple LLMs, based
-        on your trading profile and trading strategy.
+        on your trading profile and strategy.
       </p>
 
       <div
