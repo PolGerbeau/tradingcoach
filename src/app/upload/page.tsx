@@ -52,39 +52,66 @@ export default function UploadPage() {
     if (!image) return alert("Please select an image first.");
     setLoading(true);
 
-    const formData = new FormData();
-    formData.append("image", image);
-    formData.append("profile", JSON.stringify(profile));
+    try {
+      const formData = new FormData();
+      formData.append("image", image);
+      formData.append("profile", JSON.stringify(profile));
 
-    const res = await fetch("/api/analyze", {
-      method: "POST",
-      body: formData,
-    });
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        body: formData,
+      });
 
-    const { analyses } = await res.json();
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("❌ Server error response:", text);
+        alert("Server error: " + res.statusText);
+        setLoading(false);
+        return;
+      }
 
-    if (!analyses || !Array.isArray(analyses)) {
-      alert("Analysis failed. Please try again.");
+      let json;
+      try {
+        json = await res.json();
+      } catch (err) {
+        console.error("❌ Error parsing JSON:", err);
+        const fallback = await res.text();
+        console.error("🔍 Raw response text:", fallback);
+        alert("Response error. Try again.");
+        setLoading(false);
+        return;
+      }
+
+      const { analyses } = json;
+
+      if (!analyses || !Array.isArray(analyses)) {
+        console.error("❌ Invalid 'analyses' data:", json);
+        alert("Analysis failed. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      const id = analyses[0]?.id || Date.now().toString();
+      const newEntry = {
+        id,
+        date: new Date().toISOString(),
+        chartImage: preview,
+        profileSnapshot: profile,
+        analyses,
+      };
+
+      const existing = localStorage.getItem("tradingcoach_history");
+      const history = existing ? JSON.parse(existing) : [];
+      history.unshift(newEntry);
+      localStorage.setItem("tradingcoach_history", JSON.stringify(history));
+
       setLoading(false);
-      return;
+      router.push(`/history?id=${id}`);
+    } catch (error) {
+      console.error("❌ Upload failed:", error);
+      alert("Unexpected error. Please try again.");
+      setLoading(false);
     }
-
-    const id = analyses[0]?.id || Date.now().toString();
-    const newEntry = {
-      id,
-      date: new Date().toISOString(),
-      chartImage: preview,
-      profileSnapshot: profile,
-      analyses,
-    };
-
-    const existing = localStorage.getItem("tradingcoach_history");
-    const history = existing ? JSON.parse(existing) : [];
-    history.unshift(newEntry);
-    localStorage.setItem("tradingcoach_history", JSON.stringify(history));
-
-    setLoading(false);
-    router.push(`/history?id=${id}`);
   };
 
   return (

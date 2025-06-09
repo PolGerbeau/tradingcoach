@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { v4 as uuidv4 } from "uuid";
 
+// Utilidad para limitar duración de promesas
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error("Timeout")), ms)
+  );
+  return Promise.race([promise, timeout]);
+}
+
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
   const file = formData.get("image") as File;
@@ -18,9 +26,9 @@ export async function POST(req: NextRequest) {
 
   try {
     const [gptRaw, claudeRaw, geminiRaw] = await Promise.all([
-      analyzeWithOpenAI(base64Image, profile),
-      analyzeWithClaude(base64Image, profile),
-      analyzeWithGemini(base64Image, profile),
+      withTimeout(analyzeWithOpenAI(base64Image, profile), 12000),
+      withTimeout(analyzeWithClaude(base64Image, profile), 12000),
+      withTimeout(analyzeWithGemini(base64Image, profile), 12000),
     ]);
 
     console.log("🔍 Raw OpenAI response ------------------ :\n", gptRaw);
@@ -112,11 +120,7 @@ async function analyzeWithClaude(
   });
 
   const data = await res.json();
-  console.log(
-    "📦 Claude full response: ------- \n",
-    JSON.stringify(data, null, 2)
-  );
-
+  console.log("📦 Claude full response:\n", JSON.stringify(data, null, 2));
   return data.content?.[0]?.text || "[⚠️ No content returned from Claude]";
 }
 
@@ -151,10 +155,7 @@ async function analyzeWithGemini(
   );
 
   const data = await res.json();
-  console.log(
-    "📦 Gemini full response: ------- \n",
-    JSON.stringify(data, null, 2)
-  );
+  console.log("📦 Gemini full response:\n", JSON.stringify(data, null, 2));
   return (
     data.candidates?.[0]?.content?.parts?.[0]?.text ||
     "[⚠️ No content returned from Gemini]"
@@ -184,7 +185,6 @@ Please return the response in plain text format only, without Markdown, bold, bu
 
 function extractField(text: string, label: string): string {
   const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
   const regex = new RegExp(
     `\\s*${escapedLabel}[:\\-\\s]+(.+?)(?=(\\r?\\n|\\n\\n|\\n\\-\\-|$))`,
     "i"
