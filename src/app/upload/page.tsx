@@ -11,7 +11,7 @@ export default function UploadPage() {
   const [profile, setProfile] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-  const [statusText, setStatusText] = useState("Analyze with AI");
+  const [status, setStatus] = useState<string[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -79,7 +79,7 @@ export default function UploadPage() {
     }
 
     setLoading(true);
-    setStatusText("Uploading...");
+    setStatus(["Uploading..."]);
 
     const formData = new FormData();
     formData.append("image", image);
@@ -91,52 +91,58 @@ export default function UploadPage() {
         body: formData,
       });
 
-      if (!res.body) throw new Error("No response body");
+      if (!res.ok || !res.body) {
+        const errorText = await res.text();
+        toast.error("Server error: " + errorText);
+        setLoading(false);
+        return;
+      }
 
       const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let result = "";
-      const analyses: any[] = [];
-
-      setStatusText("Waiting for models...");
+      const decoder = new TextDecoder("utf-8");
+      let buffer = "";
+      const collectedAnalyses: any[] = [];
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        result += decoder.decode(value, { stream: true });
-
-        const lines = result.split("\n");
-        result = lines.pop() || ""; // keep partial line for next round
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop()!;
 
         for (const line of lines) {
           if (!line.trim()) continue;
-          const parsed = JSON.parse(line);
 
-          if (parsed.error) {
-            console.warn("⚠️ Model error:", parsed.source, parsed.error);
-            toast.error(`${parsed.source}: ${parsed.error}`);
-          } else {
-            analyses.push(parsed);
-            setStatusText(`Received: ${parsed.source}`);
+          try {
+            const data = JSON.parse(line);
+
+            if (data.error) {
+              toast.error(data.error);
+              setStatus((prev) => [...prev, `❌ ${data.source}`]);
+            } else {
+              collectedAnalyses.push(data);
+              setStatus((prev) => [...prev, `✅ ${data.source}`]);
+            }
+          } catch (err) {
+            console.warn("Could not parse line:", line);
           }
         }
       }
 
-      if (analyses.length === 0) {
-        toast.error("No analysis received.");
+      if (collectedAnalyses.length === 0) {
+        toast.error("No analysis received. Try again.");
         setLoading(false);
-        setStatusText("Analyze with AI");
         return;
       }
 
-      const id = analyses[0]?.id || Date.now().toString();
+      const id = collectedAnalyses[0]?.id || Date.now().toString();
       const newEntry = {
         id,
         date: new Date().toISOString(),
         chartImage: preview,
         profileSnapshot: profile,
-        analyses,
+        analyses: collectedAnalyses,
       };
 
       const existing = localStorage.getItem("tradingcoach_history");
@@ -145,13 +151,11 @@ export default function UploadPage() {
       localStorage.setItem("tradingcoach_history", JSON.stringify(history));
 
       setLoading(false);
-      setStatusText("Done!");
       router.push(`/history?id=${id}`);
     } catch (err: any) {
-      console.error("❌ Unexpected error:", err);
+      console.error("❌ Upload failed:", err);
       toast.error("Unexpected error: " + err.message);
       setLoading(false);
-      setStatusText("Analyze with AI");
     }
   };
 
@@ -205,7 +209,7 @@ export default function UploadPage() {
         disabled={loading || !image}
         className="mt-4 bg-black text-white px-6 py-3 rounded-xl text-lg font-semibold hover:bg-gray-800 disabled:opacity-50 transition-all"
       >
-        {loading ? statusText : "Analyze with AI"}
+        {loading ? `Analyzing... ${status.join(" | ")}` : "Analyze with AI"}
       </button>
     </main>
   );
