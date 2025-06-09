@@ -14,8 +14,8 @@ app.prepare().then(() => {
     handle(req, res, parsedUrl);
   });
 
-  // ⏱️ Extiende el timeout a 30s
-  server.timeout = 30000;
+  // ⏱️ Extiende el timeout a 60s
+  server.timeout = 60000;
 
   server.listen(port, () => {
     console.log(`🚀 Ready on http://localhost:${port}`);
