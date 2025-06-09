@@ -1,3 +1,4 @@
+// server.js
 const { createServer } = require("http");
 const next = require("next");
 const { parse } = require("url");
@@ -13,6 +14,7 @@ app.prepare().then(() => {
     handle(req, res, parsedUrl);
   });
 
+  // ⏱️ Extiende el timeout a 30s
   server.timeout = 30000;
 
   server.listen(port, () => {
