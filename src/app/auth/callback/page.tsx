@@ -2,22 +2,39 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createSupabaseClient } from "@/lib/supabase/client";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 export default function AuthCallback() {
   const router = useRouter();
 
   useEffect(() => {
-    const supabase = createSupabaseClient();
+    const supabase = createClientComponentClient();
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       if (session) {
         router.push("/profile");
       } else {
-        router.push("/login");
+        // Esperamos un poco y reintentamos
+        setTimeout(async () => {
+          const {
+            data: { session: retrySession },
+          } = await supabase.auth.getSession();
+
+          if (retrySession) {
+            router.push("/profile");
+          } else {
+            router.push("/login");
+          }
+        }, 1000); // Reintenta en 1s
       }
-    });
+    };
+
+    checkSession();
   }, [router]);
 
-  return <p className="text-center mt-20">Signing in...</p>;
+  return <p className="text-center mt-20">Iniciando sesión...</p>;
 }
