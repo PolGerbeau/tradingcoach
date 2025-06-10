@@ -40,12 +40,26 @@ export default function SidebarLayout({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  useEffectOnce(() => {
+  useEffect(() => {
     const supabase = createSupabaseClient();
-    supabase.auth.getUser().then(({ data }) => {
+
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
       setUserEmail(data.user?.email || null);
-    });
-  });
+    };
+
+    fetchUser();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUserEmail(session?.user?.email || null);
+      }
+    );
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
 
   const handleLogout = async () => {
     const supabase = createSupabaseClient();
