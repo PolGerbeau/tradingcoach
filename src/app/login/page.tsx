@@ -14,7 +14,7 @@ export default function LoginPage() {
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN") {
-        router.push("/upload");
+        router.push("/onboarding");
       }
     });
 

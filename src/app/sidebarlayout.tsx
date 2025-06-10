@@ -92,7 +92,7 @@ export default function SidebarLayout({
           <SidebarLink
             href="/onboarding"
             icon={<Brain />}
-            label="Your Profile"
+            label="Trading Profile"
             setSidebarOpen={setSidebarOpen}
           />
           <SidebarLink
@@ -121,7 +121,7 @@ export default function SidebarLayout({
             <DropdownMenuTrigger className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 w-full text-left">
               <User className="w-5 h-5" />
               <span className="text-sm font-medium text-gray-700">
-                {userEmail || "Account"}
+                {"Account"}
               </span>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56 ml-2 mt-2">
