@@ -2,9 +2,27 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Brain, Upload, BarChart2, MessageCircle, Menu, X } from "lucide-react";
+import {
+  Brain,
+  Upload,
+  BarChart2,
+  MessageCircle,
+  Menu,
+  X,
+  User,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { createSupabaseClient } from "@/lib/supabase/client";
+import { useEffectOnce } from "react-use";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function SidebarLayout({
   children,
@@ -12,6 +30,7 @@ export default function SidebarLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -20,6 +39,19 @@ export default function SidebarLayout({
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffectOnce(() => {
+    const supabase = createSupabaseClient();
+    supabase.auth.getUser().then(({ data }) => {
+      setUserEmail(data.user?.email || null);
+    });
+  });
+
+  const handleLogout = async () => {
+    const supabase = createSupabaseClient();
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  };
 
   return (
     <div className="flex min-h-screen">
@@ -68,6 +100,25 @@ export default function SidebarLayout({
             setSidebarOpen={setSidebarOpen}
           />
         </nav>
+
+        {/* User menu */}
+        <div className="mt-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 w-full text-left">
+              <User className="w-5 h-5" />
+              <span className="text-sm font-medium text-gray-700">
+                {userEmail || "Account"}
+              </span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56 ml-2 mt-2">
+              <DropdownMenuLabel>{userEmail}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {/* Content */}

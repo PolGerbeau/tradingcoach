@@ -25,7 +25,7 @@ export default function AuthCallback() {
           } = await supabase.auth.getSession();
 
           if (retrySession) {
-            router.push("/profile");
+            router.push("/upload");
           } else {
             router.push("/login");
           }
