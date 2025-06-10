@@ -12,11 +12,14 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN") {
-        router.push("/onboarding");
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log("Auth event:", event, session);
+        if (event === "SIGNED_IN") {
+          router.push("/onboarding");
+        }
       }
-    });
+    );
 
     return () => {
       authListener.subscription.unsubscribe();
