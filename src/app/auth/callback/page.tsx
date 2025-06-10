@@ -16,7 +16,7 @@ export default function AuthCallback() {
       } = await supabase.auth.getSession();
 
       if (session) {
-        router.push("/profile");
+        router.push("/upload");
       } else {
         // Esperamos un poco y reintentamos
         setTimeout(async () => {
@@ -36,5 +36,5 @@ export default function AuthCallback() {
     checkSession();
   }, [router]);
 
-  return <p className="text-center mt-20">Iniciando sesión...</p>;
+  return <p className="text-center mt-20">Signin in...</p>;
 }
