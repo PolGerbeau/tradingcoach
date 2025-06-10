@@ -4,16 +4,17 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function LoginPage() {
   const supabase = createClientComponentClient();
   const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN") {
-        router.push("/upload"); // Redirect to dashboard after login
+        router.push("/upload");
       }
     });
 
@@ -22,6 +23,19 @@ export default function LoginPage() {
     };
   }, [router, supabase]);
 
+  if (error) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="w-full max-w-sm p-6 bg-white rounded-lg shadow-md">
+          <h1 className="text-2xl font-bold text-center text-red-600 mb-4">
+            Error
+          </h1>
+          <p className="text-sm text-gray-600 text-center">{error}</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full max-w-sm p-6 bg-white rounded-lg shadow-md">
@@ -29,7 +43,7 @@ export default function LoginPage() {
           Sign In
         </h1>
         <p className="text-sm text-gray-600 text-center mb-6">
-          Enter your email to receive a magic link.
+          Sign in with your email and password.
         </p>
         <Auth
           supabaseClient={supabase}
@@ -38,17 +52,19 @@ export default function LoginPage() {
             variables: {
               default: {
                 colors: {
-                  brand: "#3b82f6", // Tailwind blue-500
-                  brandAccent: "#2563eb", // Tailwind blue-600
+                  brand: "#3b82f6",
+                  brandAccent: "#2563eb",
                 },
               },
             },
           }}
           providers={[]}
-          view="magic_link"
-          showLinks={false}
+          view="sign_in"
+          showLinks={true}
           redirectTo={`${
-            typeof window !== "undefined" ? window.location.origin : ""
+            typeof window !== "undefined"
+              ? window.location.origin
+              : process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
           }/auth/callback`}
         />
       </div>

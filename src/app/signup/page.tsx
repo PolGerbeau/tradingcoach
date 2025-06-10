@@ -12,14 +12,11 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log("Auth event:", event, "Session:", !!session);
-        if (event === "SIGNED_IN") {
-          router.push("/dashboard");
-        }
+    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN") {
+        router.push("/upload");
       }
-    );
+    });
 
     return () => {
       authListener.subscription.unsubscribe();
