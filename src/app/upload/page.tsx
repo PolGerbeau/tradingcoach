@@ -79,7 +79,7 @@ export default function UploadPage() {
     }
 
     setLoading(true);
-    setStatus(["Uploading..."]);
+    setStatus([""]);
 
     const formData = new FormData();
     formData.append("image", image);

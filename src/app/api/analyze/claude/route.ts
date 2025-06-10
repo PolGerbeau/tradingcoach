@@ -62,8 +62,7 @@ function extractSupportResistance(text: string): {
   type: "Support" | "Resistance";
   reason: string;
 }[] {
-  const regex =
-    /(Support|Resistance)[:\\s]*([0-9.]+)\\s*[\u2013\u2014\-]\s*(.+)/gi;
+  const regex = /(Support|Resistance)[:\s]*\$?([0-9.]+)\s*[\u2013-]\s*(.+)/gi;
   const matches = [...text.matchAll(regex)];
   return matches.map((m) => ({
     type: m[1] as "Support" | "Resistance",

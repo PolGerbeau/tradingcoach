@@ -1,12 +1,8 @@
-// src/app/api/chat/route.ts
-
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
 export async function POST(req: Request) {
   try {
-    console.log("OPENAI KEY:", process.env.OPENAI_API_KEY);
-
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
@@ -26,7 +22,7 @@ export async function POST(req: Request) {
     }
 
     const fullPrompt = `
-You are a professional trading coach.º
+You are a professional trading coach.
 You help the user improve their trading decisions using their own profile, analysis history, and conversation context.
 Only respond to trading-related questions. If the user asks about anything else, kindly remind them this coach is only for trading.
 Do not prefix your messages with "Coach:" or similar labels. Just speak directly to the user in a natural tone.
@@ -37,8 +33,6 @@ If the user asks how to analyze a chart, or requests a chart analysis, tell the 
 Use _UPLOAD_LINK_ exactly like that — the frontend will replace it with the real URL.
 
 Consider the user’s emotional state and trading psychology—offer encouragement for successes or advice to manage fear/greed based on their history. Suggest strategy tweaks if past trades show patterns (e.g., losses from poor timing). Provide performance feedback (e.g., win rate, trends) when relevant, and encourage goal-setting.
-
-On chart upload, inspect the Analysis list to confirm the new entry is present.
 
 User profile:
 ${JSON.stringify(profile, null, 2)}
@@ -53,11 +47,17 @@ ${
   pastAnalyses.length > 0
     ? pastAnalyses
         .map((entry: any, i: number) => {
-          return `Analysis ${i + 1} – ${entry.ticker} (${entry.timeframe}) on ${
-            entry.date
-          }:
-Recommendation: ${entry.recommendation}
-Reasoning: ${entry.reasoning}`;
+          const details = entry.analyses
+            .map(
+              (a: any) => `${a.source} says:
+- Ticker: ${a.ticker}
+- Timeframe: ${a.timeframe}
+- Recommendation: ${a.recommendation}
+- Reasoning: ${a.reasoning}`
+            )
+            .join("\n\n");
+
+          return `Analysis ${i + 1} on ${entry.date}:\n${details}`;
         })
         .join("\n\n")
     : "None"
