@@ -9,17 +9,18 @@ export async function createServerSupabaseClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        async getAll() {
-          return cookieStore.getAll();
+        getAll() {
+          return cookieStore.getAll().map((cookie) => ({
+            name: cookie.name,
+            value: cookie.value,
+          }));
         },
-        async setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // Ignorar si viene de Server Component sin middleware
-          }
+        setAll(cookiesToSet) {
+          // No podemos modificar cookies en Server Components
+          // Esto se maneja en middleware o rutas
+          cookiesToSet.forEach(({ name, value, options }) => {
+            console.log(`Intento establecer cookie: ${name}=${value}`, options);
+          });
         },
       },
     }
