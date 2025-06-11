@@ -173,7 +173,7 @@ export default function UploadPage() {
 
   return (
     <main className="max-w-md mx-auto px-4 py-16 text-center ">
-      <h1 className="text-4xl font-extrabold text-[#00ff88] mb-6 flex items-center gap-2 font-orbitron justify-center">
+      <h1 className="text-4xl font-extrabold text-[#00ff88] mb-6 flex items-center gap-2  justify-center">
         <Upload className="w-8 h-8 text-black" />
         Upload & Analyze
       </h1>
@@ -252,7 +252,7 @@ export default function UploadPage() {
 
       {endpointStatus.length > 0 && (
         <div className="mt-6 space-y-4">
-          <h2 className="text-xl font-semibold text-[#00ff88] text-center font-orbitron">
+          <h2 className="text-xl font-semibold text-[#00ff88] text-center f">
             Analysis Progress
           </h2>
           {endpointStatus.map(({ name, status }) => (
@@ -261,9 +261,7 @@ export default function UploadPage() {
               className="bg-[#1a1a1a] border border-[#00ff88] rounded-lg p-4 shadow-[0_0_10px_rgba(0,255,136,0.3)] neon-border animate-fade-in"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[#00ff88] font-orbitron font-semibold">
-                  {name}
-                </span>
+                <span className="text-[#00ff88]  font-semibold">{name}</span>
                 <div
                   className={`w-6 h-6 rounded-full flex items-center justify-center ${
                     status === "pending"

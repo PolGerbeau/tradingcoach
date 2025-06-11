@@ -228,7 +228,7 @@ export default function OnboardingPage() {
         <div className="mb-6 text-sm text-gray-200">
           Step {stepIndex + 1} of {steps.length}
         </div>
-        <h1 className="text-4xl font-extrabold text-[#00ff88] mb-6 flex items-center gap-2 font-orbitron">
+        <h1 className="text-4xl font-extrabold text-[#00ff88] mb-6 flex items-center gap-2 ">
           <Brain className="w-8 h-8 text-[#00ff88]" />
           Trading Profile
         </h1>
@@ -286,7 +286,7 @@ export default function OnboardingPage() {
 
       <div className="hidden md:block self-start bg-[#1a1a1a] border border-[#00ff88] rounded-2xl p-6 shadow-[0_0_10px_rgba(0,255,136,0.3)] space-y-5 transition-all hover:shadow-[0_0_15px_rgba(0,255,136,0.3)] neon-border">
         <div className="flex justify-between items-center">
-          <h3 className="text-xl font-semibold text-[#00ff88] font-orbitron">
+          <h3 className="text-xl font-semibold text-[#00ff88] ">
             Current Profile
           </h3>
           <button

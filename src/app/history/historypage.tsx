@@ -113,7 +113,7 @@ export default function HistoryPage() {
   return (
     <main className="w-full px-4 sm:px-6 py-16 ">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-        <h1 className="text-4xl font-extrabold text-[#00ff88] mb-6 flex items-center gap-2 font-orbitron">
+        <h1 className="text-4xl font-extrabold text-[#00ff88] mb-6 flex items-center gap-2 ">
           <BarChart2 className="w-8 h-8 text-[#00ff88]" />
           Analysis
         </h1>
@@ -280,7 +280,7 @@ export default function HistoryPage() {
             {selected && (
               <>
                 <div className="bg-gradient-to-r from-[#00ff88] to-[#00cc70] text-black p-4 rounded-t-2xl shadow-[0_0_10px_#00ff88] flex justify-between items-center">
-                  <h2 className="text-xl font-bold font-orbitron">
+                  <h2 className="text-xl font-bold ">
                     {selected.analyses?.[0]?.ticker || ""}
                   </h2>
                   <button
@@ -307,7 +307,7 @@ export default function HistoryPage() {
                     className="bg-[#1a1a1a] border-t border-[#00ff88]/30 rounded-lg p-4 text-gray-200 shadow-inner space-y-4"
                   >
                     <div className="flex justify-between items-center">
-                      <h3 className="text-lg font-semibold text-[#00ff88] font-orbitron">
+                      <h3 className="text-lg font-semibold text-[#00ff88] ">
                         {a.source} Recommendation: {a.recommendation}
                       </h3>
                       <span
@@ -344,7 +344,7 @@ export default function HistoryPage() {
 
                 {selected.profileSnapshot && (
                   <div className="bg-[#1a1a1a] border-t border-[#00ff88]/30 rounded-lg p-4 text-gray-200 shadow-inner space-y-4">
-                    <h3 className="text-lg font-semibold text-[#00ff88] font-orbitron">
+                    <h3 className="text-lg font-semibold text-[#00ff88] ">
                       Trader Profile
                     </h3>
                     <div className="grid grid-cols-2 gap-4 text-base">

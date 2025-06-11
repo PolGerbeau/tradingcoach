@@ -125,7 +125,7 @@ export default function SidebarLayout({
               </span>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56 ml-2 mt-2 bg-[#1a1a1a]/95 backdrop-blur-sm border border-[#00ff88] rounded-lg shadow-[0_0_10px_rgba(0,255,136,0.3)] neon-border">
-              <DropdownMenuLabel className="text-[#00ff88] font-orbitron">
+              <DropdownMenuLabel className="text-[#00ff88] ">
                 {userEmail || "Not logged in"}
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-[#00ff88]/30" />
@@ -150,7 +150,7 @@ export default function SidebarLayout({
           >
             <Menu className="w-6 h-6" />
           </button>
-          <h2 className="text-lg font-semibold text-[#00ff88] font-orbitron">
+          <h2 className="text-lg font-semibold text-[#00ff88] ">
             TradingCoach
           </h2>
           <div className="w-6" />

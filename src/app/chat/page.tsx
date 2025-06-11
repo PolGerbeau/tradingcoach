@@ -99,7 +99,7 @@ export default function TradingCoachChat() {
 
   return (
     <main className="max-w-4xl mx-auto px-4 sm:px-6 py-12 min-h-screen relative ">
-      <h1 className="text-4xl font-extrabold text-[#00ff88] mb-6 flex items-center gap-2 font-orbitron">
+      <h1 className="text-4xl font-extrabold text-[#00ff88] mb-6 flex items-center gap-2 ">
         <MessageCircle className="w-8 h-8 text-[#00ff88]" />
         Trading Coach
       </h1>
