@@ -17,7 +17,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4 py-16">
+    <main className="min-h-screen  flex items-center justify-center px-4 py-16">
       <div className="max-w-3xl w-full text-center space-y-8">
         <h1 className="text-5xl font-extrabold text-[#00ff88]">
           Welcome {name ? name : "Trader"}
