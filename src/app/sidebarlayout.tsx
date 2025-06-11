@@ -109,7 +109,7 @@ export default function SidebarLayout({
           <SidebarLink
             href="/chat"
             icon={<MessageCircle />}
-            label="Trading Chat"
+            label="Trading Coach"
             setSidebarOpen={setSidebarOpen}
           />
         </nav>

@@ -120,7 +120,7 @@ export default function HistoryPage() {
         {history.length > 0 && (
           <button
             onClick={handleClearAll}
-            className="absolute top-6 right-6 bg-gradient-to-r from-[#00ff88] to-[#00cc70] text-black px-4 py-2 rounded-xl shadow-[0_0_10px_#00ff88] hover:shadow-[0_0_15px_#00ff88] transition-all duration-200 text-sm"
+            className="absolute top-25 right-15 bg-gradient-to-r from-[#00ff88] to-[#00cc70] text-black px-4 py-2 rounded-xl shadow-[0_0_10px_#00ff88] hover:shadow-[0_0_15px_#00ff88] transition-all duration-200 text-sm"
           >
             Clear All Analysis
           </button>
