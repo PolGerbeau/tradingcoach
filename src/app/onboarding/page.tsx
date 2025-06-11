@@ -1,8 +1,15 @@
-// app/onboarding/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { CheckCircle } from "lucide-react";
+import {
+  Brain,
+  Upload,
+  BarChart2,
+  MessageCircle,
+  Menu,
+  User,
+} from "lucide-react";
 
 export default function OnboardingPage() {
   const steps = [
@@ -216,15 +223,16 @@ export default function OnboardingPage() {
   };
 
   return (
-    <main className="max-w-6xl mx-auto px-6 py-20 animate-fade-in grid md:grid-cols-[2fr_1fr] gap-12 items-start">
+    <main className="max-w-6xl mx-auto px-6 py-16 animate-fade-in grid md:grid-cols-[2fr_1fr] gap-12 items-start">
       <div>
-        <div className="mb-6 text-sm text-gray-500">
+        <div className="mb-6 text-sm text-gray-200">
           Step {stepIndex + 1} of {steps.length}
         </div>
-        <h1 className="text-3xl font-extrabold mb-2 text-blue-800">
-          Your Profile
+        <h1 className="text-4xl font-extrabold text-[#00ff88] mb-6 flex items-center gap-2 font-orbitron">
+          <Brain className="w-8 h-8 text-[#00ff88]" />
+          Trading Profile
         </h1>
-        <h2 className="text-xl font-semibold mb-8 text-gray-800">
+        <h2 className="text-xl font-semibold mb-8 text-gray-200">
           {currentStep.title}
         </h2>
 
@@ -238,22 +246,22 @@ export default function OnboardingPage() {
               className={`p-5 rounded-2xl shadow-md border transition-all flex flex-col gap-2 hover:scale-[1.02] ${
                 isMulti
                   ? selectedValues.includes(option.label)
-                    ? "bg-blue-100 border-blue-500 shadow-lg"
-                    : "hover:bg-gray-100 border-gray-300"
+                    ? "bg-[#1a1a1a] border-[#00ff88] shadow-[0_0_10px_rgba(0,255,136,0.3)] neon-border"
+                    : "hover:bg-[#00ff88]/10 border-gray-700"
                   : form[currentStep.key] === option.label
-                  ? "bg-blue-100 border-blue-500 shadow-lg"
-                  : "hover:bg-gray-100 border-gray-300"
+                  ? "bg-[#1a1a1a] border-[#00ff88] shadow-[0_0_10px_rgba(0,255,136,0.3)] neon-border"
+                  : "hover:bg-[#00ff88]/10 border-gray-700"
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="font-bold text-gray-900">{option.label}</span>
+                <span className="font-bold text-gray-200">{option.label}</span>
                 {(isMulti
                   ? selectedValues.includes(option.label)
                   : form[currentStep.key] === option.label) && (
-                  <CheckCircle className="w-5 h-5 text-blue-600" />
+                  <CheckCircle className="w-5 h-5 text-[#00ff88]" />
                 )}
               </div>
-              <p className="text-sm text-gray-600">{option.description}</p>
+              <p className="text-sm text-gray-200">{option.description}</p>
             </button>
           ))}
         </div>
@@ -262,28 +270,28 @@ export default function OnboardingPage() {
           {stepIndex > 0 && (
             <button
               onClick={handleBack}
-              className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-5 py-2 rounded-xl shadow-sm text-sm font-medium"
+              className="bg-[#1a1a1a] border border-[#00ff88] text-gray-200 px-5 py-2 rounded-xl shadow-[0_0_5px_rgba(0,255,136,0.2)] hover:bg-[#00ff88]/20 text-sm font-medium"
             >
               ← Back
             </button>
           )}
           <button
             onClick={handleNext}
-            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition-all duration-200"
+            className="bg-gradient-to-r from-[#00ff88] to-[#00cc70] text-black font-semibold px-6 py-3 rounded-xl shadow-[0_0_10px_#00ff88] hover:shadow-[0_0_15px_#00ff88] transition-all duration-200"
           >
             {stepIndex === steps.length - 1 ? "Finish" : "Next"}
           </button>
         </div>
       </div>
 
-      <div className="hidden md:block self-start bg-white border border-gray-200 rounded-2xl p-6 shadow-lg space-y-5 transition-all hover:shadow-xl">
+      <div className="hidden md:block self-start bg-[#1a1a1a] border border-[#00ff88] rounded-2xl p-6 shadow-[0_0_10px_rgba(0,255,136,0.3)] space-y-5 transition-all hover:shadow-[0_0_15px_rgba(0,255,136,0.3)] neon-border">
         <div className="flex justify-between items-center">
-          <h3 className="text-xl font-semibold text-gray-900">
+          <h3 className="text-xl font-semibold text-[#00ff88] font-orbitron">
             Current Profile
           </h3>
           <button
             onClick={handleReset}
-            className="text-sm text-red-600 hover:text-red-700 font-medium transition-colors"
+            className="text-sm text-[#00ff88] hover:text-[#00ffbb] font-medium transition-colors"
             aria-label="Reset profile"
           >
             Reset
@@ -293,10 +301,10 @@ export default function OnboardingPage() {
         <div className="grid gap-4">
           {Object.entries(form).map(([key, value]) => (
             <div key={key} className="flex items-start gap-3">
-              <p className="text-sm text-gray-500 capitalize font-medium w-1/3">
+              <p className="text-sm text-[#00ff88] capitalize font-medium w-1/3">
                 {key}
               </p>
-              <p className="text-sm text-gray-900 flex-1">
+              <p className="text-sm text-gray-200 flex-1">
                 {Array.isArray(value)
                   ? value.length > 0
                     ? value.join(", ")

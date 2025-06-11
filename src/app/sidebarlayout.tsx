@@ -1,4 +1,3 @@
-// app/components/SidebarLayout.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -68,19 +67,19 @@ export default function SidebarLayout({
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-[#0a0a0a]">
       {/* Sidebar */}
       <div
-        className={`fixed z-40 inset-y-0 left-0 w-64 bg-white border-r shadow-md px-6 py-8 space-y-8 transform transition-transform duration-300 ease-in-out md:static md:translate-x-0 ${
+        className={`fixed z-40 inset-y-0 left-0 w-64 bg-[#1a1a1a] border-r border-[#00ff88] shadow-[0_0_10px_rgba(0,255,136,0.3)] px-6 py-8 space-y-8 transform transition-transform duration-300 ease-in-out md:static md:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex justify-between items-center">
-          <h2 className="text-3xl font-extrabold text-blue-700 tracking-tight">
+          <h2 className="text-3xl font-extrabold text-[#00ff88] tracking-tight font-orbitron">
             TradingCoach
           </h2>
           <button
-            className="md:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="md:hidden p-2 text-gray-400 hover:text-[#00ff88] hover:bg-[#00ff88]/10 rounded-full transition focus:outline-none focus:ring-2 focus:ring-[#00ff88]"
             onClick={() => setSidebarOpen(false)}
             aria-label="Close sidebar"
           >
@@ -116,18 +115,24 @@ export default function SidebarLayout({
         </nav>
 
         {/* User menu */}
+
         <div className="mt-auto">
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 w-full text-left">
-              <User className="w-5 h-5" />
-              <span className="text-sm font-medium text-gray-700">
-                {"Account"}
+            <DropdownMenuTrigger className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-[#00ff88]/20 w-full text-left text-gray-200 hover:text-[#00ff88] neon-border">
+              <User className="w-5 h-5 text-[#00ff88]" />
+              <span className="text-sm font-medium">
+                {userEmail || "Account"}
               </span>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 ml-2 mt-2">
-              <DropdownMenuLabel>{userEmail}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
+            <DropdownMenuContent className="w-56 ml-2 mt-2 bg-[#1a1a1a]/95 backdrop-blur-sm border border-[#00ff88] rounded-lg shadow-[0_0_10px_rgba(0,255,136,0.3)] neon-border">
+              <DropdownMenuLabel className="text-[#00ff88] font-orbitron">
+                {userEmail || "Not logged in"}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-[#00ff88]/30" />
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="text-gray-200 hover:text-[#00ff88] hover:bg-[#00ff88]/20 focus:bg-[#00ff88]/20 focus:text-[#00ff88] cursor-pointer"
+              >
                 Log out
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -137,18 +142,20 @@ export default function SidebarLayout({
 
       {/* Content */}
       <div className="flex-1 flex flex-col">
-        <div className="md:hidden px-4 py-3 bg-white border-b shadow-sm flex items-center justify-between">
+        <div className="md:hidden px-4 py-3 bg-[#1a1a1a] border-b border-[#00ff88] shadow-[0_0_5px_rgba(0,255,136,0.2)] flex items-center justify-between">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="text-gray-700 hover:text-blue-700 p-2 rounded-full transition focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="text-gray-400 hover:text-[#00ff88] p-2 rounded-full transition focus:outline-none focus:ring-2 focus:ring-[#00ff88]"
             aria-label="Open sidebar"
           >
             <Menu className="w-6 h-6" />
           </button>
-          <h2 className="text-lg font-semibold text-blue-700">TradingCoach</h2>
+          <h2 className="text-lg font-semibold text-[#00ff88] font-orbitron">
+            TradingCoach
+          </h2>
           <div className="w-6" />
         </div>
-        <main className="flex-1 px-4 sm:px-6 md:px-10 py-6 md:py-10 bg-gradient-to-b from-white to-gray-50 overflow-x-auto overflow-y-auto">
+        <main className="flex-1 px-4 sm:px-6 md:px-10 py-6 md:py-10 bg-gradient-to-b from-[#0a0a0a] to-[#1a1a1a] overflow-x-auto overflow-y-auto">
           {children}
         </main>
       </div>
@@ -174,11 +181,15 @@ function SidebarLink({
     <Link
       href={href}
       onClick={() => setSidebarOpen(false)}
-      className={`flex items-center gap-3 px-4 py-2 rounded-lg group transition-all duration-200 font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-800 ${
-        isActive ? "bg-blue-100 text-blue-800" : ""
+      className={`flex items-center gap-3 px-4 py-2 rounded-lg group transition-all duration-200 font-medium text-gray-200 hover:bg-[#00ff88]/20 hover:text-[#00ff88] ${
+        isActive ? "bg-[#00ff88]/30 text-[#00ff88] neon-border" : ""
       }`}
     >
-      <span className="text-xl transform group-hover:translate-x-1 transition-transform duration-200">
+      <span
+        className={`text-xl transform group-hover:translate-x-1 transition-transform duration-200 ${
+          isActive ? "text-[#00ff88]" : "text-gray-400"
+        }`}
+      >
         {icon}
       </span>
       <span className="text-base">{label}</span>

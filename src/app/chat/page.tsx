@@ -1,4 +1,3 @@
-// app/chat/page.tsx
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -11,7 +10,6 @@ interface Message {
 }
 
 export default function TradingCoachChat() {
-  // Inicializa messages desde localStorage solo una vez
   const initialMessages =
     typeof window !== "undefined"
       ? localStorage.getItem("tradingcoach_chat")
@@ -26,7 +24,6 @@ export default function TradingCoachChat() {
   const chatRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    console.log("Loading initial data - Messages:", messages); // Solo para depuración
     const savedProfile = localStorage.getItem("tradingcoach_profile");
     if (savedProfile) {
       try {
@@ -47,7 +44,6 @@ export default function TradingCoachChat() {
   }, []);
 
   useEffect(() => {
-    console.log("Saving messages to localStorage:", messages);
     localStorage.setItem("tradingcoach_chat", JSON.stringify(messages));
     if (chatRef.current) {
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
@@ -59,7 +55,6 @@ export default function TradingCoachChat() {
   };
 
   const handleSubmit = async () => {
-    console.log("Before submit, messages:", messages);
     if (!input.trim()) return;
 
     const userMessage: Message = { role: "user", text: input };
@@ -79,14 +74,13 @@ export default function TradingCoachChat() {
     });
 
     const data = await res.json();
-    console.log("API response:", data);
 
     addMessage({
       role: "assistant",
       text:
         data.reply?.replace(
           /_UPLOAD_LINK_/g,
-          '<a href="/upload" class="text-blue-600 underline">this page</a>'
+          '<a href="/upload" class="text-[#00ff88] underline hover:text-[#00ffbb]">this page</a>'
         ) || "No response from coach.",
     });
     setLoading(false);
@@ -98,22 +92,21 @@ export default function TradingCoachChat() {
 
   const clearChat = () => {
     if (window.confirm("Are you sure you want to clear the conversation?")) {
-      console.log("Clearing chat, messages before:", messages);
       setMessages([]);
       localStorage.removeItem("tradingcoach_chat");
     }
   };
 
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-12 min-h-screen relative">
-      <h1 className="text-4xl font-extrabold text-blue-800 mb-6 flex items-center gap-2">
-        <MessageCircle className="w-8 h-8 text-blue-600" />
+    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-12 min-h-screen relative ">
+      <h1 className="text-4xl font-extrabold text-[#00ff88] mb-6 flex items-center gap-2 font-orbitron">
+        <MessageCircle className="w-8 h-8 text-[#00ff88]" />
         Trading Coach
       </h1>
 
       <button
         onClick={clearChat}
-        className="absolute top-6 right-6 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-2 rounded-xl shadow-lg transition-all duration-200 text-sm"
+        className="absolute top-6 right-6 bg-gradient-to-r from-[#00ff88] to-[#00cc70] text-black px-4 py-2 rounded-xl shadow-[0_0_10px_#00ff88] hover:shadow-[0_0_15px_#00ff88] transition-all duration-200 text-sm"
         aria-label="Clear chat"
       >
         Clear Chat
@@ -121,12 +114,12 @@ export default function TradingCoachChat() {
 
       <div
         ref={chatRef}
-        className="bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200 h-[600px] sm:h-[500px] overflow-y-auto px-6 py-4 shadow-xl mb-6 space-y-4 animate-fade-in"
+        className="bg-[#1a1a1a]/95 backdrop-blur-sm rounded-2xl border border-[#00ff88] h-[600px] sm:h-[500px] overflow-y-auto px-6 py-4 shadow-[0_0_10px_rgba(0,255,136,0.3)] mb-6 space-y-4 animate-fade-in neon-border"
       >
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <MessageCircle className="w-16 h-16 text-gray-400 mb-4 animate-pulse" />
-            <p className="text-gray-500 italic text-lg">
+            <MessageCircle className="w-16 h-16 text-[#00ff88] mb-4 animate-pulse" />
+            <p className="text-gray-200 italic text-lg">
               Start chatting with your trading coach...
             </p>
           </div>
@@ -142,8 +135,8 @@ export default function TradingCoachChat() {
             <div
               className={`max-w-[85%] px-5 py-3 rounded-2xl text-sm whitespace-pre-line transition-all duration-300 ${
                 msg.role === "user"
-                  ? "bg-gradient-to-br from-blue-100 to-blue-200 text-blue-900"
-                  : "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-800"
+                  ? "bg-[#00ff88]/20 text-gray-200"
+                  : "bg-[#1a1a1a] text-gray-200 border border-[#00ff88]/30"
               } ${
                 msg.role === "user"
                   ? "animate-slide-in-right"
@@ -156,8 +149,8 @@ export default function TradingCoachChat() {
 
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 px-5 py-3 rounded-2xl text-sm animate-pulse">
-              <Loader2 className="w-5 h-5 inline animate-spin mr-2" />{" "}
+            <div className="bg-[#1a1a1a] border border-[#00ff88]/30 text-gray-200 px-5 py-3 rounded-2xl text-sm animate-pulse">
+              <Loader2 className="w-5 h-5 inline animate-spin mr-2 text-[#00ff88]" />{" "}
               Thinking...
             </div>
           </div>
@@ -170,13 +163,13 @@ export default function TradingCoachChat() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="flex-1 border border-gray-200 bg-white px-5 py-3 rounded-xl shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all text-gray-900 placeholder-gray-400"
+          className="flex-1 border border-[#00ff88] bg-[#1a1a1a] px-5 py-3 rounded-xl shadow-[0_0_5px_rgba(0,255,136,0.2)] focus:outline-none focus:ring-2 focus:ring-[#00ff88] transition-all text-gray-200 placeholder-gray-400"
           placeholder="Ask your trading coach..."
           aria-label="Chat input"
         />
         <button
           onClick={handleSubmit}
-          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition-all duration-200"
+          className="bg-gradient-to-r from-[#00ff88] to-[#00cc70] text-black font-semibold px-6 py-3 rounded-xl shadow-[0_0_10px_#00ff88] hover:shadow-[0_0_15px_#00ff88] transition-all duration-200"
           aria-label="Send message"
         >
           Send

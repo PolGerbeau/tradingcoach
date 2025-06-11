@@ -3,6 +3,15 @@
 import { useState, useEffect, DragEvent, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { Button } from "@/components/ui/button";
+import {
+  Brain,
+  Upload,
+  BarChart2,
+  MessageCircle,
+  Menu,
+  User,
+} from "lucide-react";
 
 export default function UploadPage() {
   const [image, setImage] = useState<File | null>(null);
@@ -11,7 +20,9 @@ export default function UploadPage() {
   const [profile, setProfile] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-  const [status, setStatus] = useState<string[]>([]);
+  const [endpointStatus, setEndpointStatus] = useState<
+    { name: string; status: "idle" | "pending" | "success" | "error" }[]
+  >([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -79,7 +90,11 @@ export default function UploadPage() {
     }
 
     setLoading(true);
-    setStatus([""]);
+    setEndpointStatus([
+      { name: "OpenAI", status: "pending" },
+      { name: "Claude", status: "pending" },
+      { name: "Gemini", status: "pending" },
+    ]);
 
     const formData = new FormData();
     formData.append("image", image);
@@ -104,17 +119,29 @@ export default function UploadPage() {
           if (!res.ok) {
             const error = await res.text();
             toast.error(`${name} error: ${error}`);
-            setStatus((prev) => [...prev, `❌ ${name}`]);
+            setEndpointStatus((prev) =>
+              prev.map((item) =>
+                item.name === name ? { ...item, status: "error" } : item
+              )
+            );
             return;
           }
 
           const { analysis } = await res.json();
           collectedAnalyses.push(analysis);
-          setStatus((prev) => [...prev, `✅ ${name}`]);
+          setEndpointStatus((prev) =>
+            prev.map((item) =>
+              item.name === name ? { ...item, status: "success" } : item
+            )
+          );
         } catch (err: any) {
           console.error(`❌ ${name} failed:`, err);
-          toast.error(`${name} failed: ` + err.message);
-          setStatus((prev) => [...prev, `❌ ${name}`]);
+          toast.error(`${name} failed: ${err.message}`);
+          setEndpointStatus((prev) =>
+            prev.map((item) =>
+              item.name === name ? { ...item, status: "error" } : item
+            )
+          );
         }
       })
     );
@@ -140,22 +167,24 @@ export default function UploadPage() {
     localStorage.setItem("tradingcoach_history", JSON.stringify(history));
 
     setLoading(false);
+    toast.success("Analysis complete!");
     router.push(`/history?id=${id}`);
   };
 
   return (
-    <main className="max-w-xl mx-auto px-6 py-20 text-center">
-      <h1 className="text-3xl font-bold text-blue-800 mb-2">
+    <main className="max-w-md mx-auto px-4 py-16 text-center ">
+      <h1 className="text-4xl font-extrabold text-[#00ff88] mb-6 flex items-center gap-2 font-orbitron justify-center">
+        <Upload className="w-8 h-8 text-black" />
         Upload & Analyze
       </h1>
-      <p className="text-gray-600 mb-8">
-        <strong>Upload a screenshot</strong> of your trading chart to get AI
-        analysis based on your profile.
+      <p className="text-gray-200 mb-8">
+        <strong className="text-[#00ff88]">Upload a screenshot</strong> of your
+        trading chart to get AI-driven analysis.
       </p>
 
       <div
-        className={`transition-all duration-300 border-2 rounded-2xl p-8 cursor-pointer ${
-          dragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"
+        className={`transition-all duration-300 border-2 border-[#00ff88] rounded-xl p-8 bg-[#1a1a1a] cursor-pointer shadow-[0_0_10px_rgba(0,255,136,0.3)] neon-border ${
+          dragActive ? "bg-[#00ff88]/10" : ""
         }`}
         onDrop={handleDrop}
         onDragOver={handleDrag}
@@ -169,9 +198,9 @@ export default function UploadPage() {
           id="upload-input"
         />
         <label htmlFor="upload-input" className="block w-full text-center">
-          <div className="text-gray-500">
+          <div className="text-gray-200">
             Drag & drop your chart here or{" "}
-            <span className="text-blue-600 font-medium underline cursor-pointer">
+            <span className="text-[#00ff88] font-medium underline cursor-pointer">
               browse
             </span>
           </div>
@@ -182,19 +211,104 @@ export default function UploadPage() {
         <div className="mt-8 mb-6">
           <img
             src={preview}
-            alt="Preview"
-            className="mx-auto max-w-full max-h-96 rounded-xl border shadow-md transition-all duration-300"
+            alt="Preview Image"
+            className="mx-auto max-w-full max-h-96 rounded-xl border border-[#00ff88] shadow-[0_0_10px_rgba(0,255,136,0.3)] neon-border transition-all duration-300"
           />
         </div>
       )}
 
-      <button
+      <Button
         onClick={handleUpload}
         disabled={loading || !image}
-        className="mt-4 bg-black text-white px-6 py-3 rounded-xl text-lg font-semibold hover:bg-gray-800 disabled:opacity-50 transition-all"
+        className="mt-4 w-full bg-gradient-to-r from-[#00ff88] to-[#00cc70] text-black hover:bg-[#00ff88]/90 shadow-[0_0_10px_#00ff88] disabled:bg-gray-500 disabled:text-gray-300 disabled:shadow-none"
       >
-        {loading ? `Analyzing... ${status.join(" | ")}` : "Analyze with AI"}
-      </button>
+        {loading ? (
+          <>
+            <svg
+              className="animate-spin mr-2 h-5 w-5 text-black"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              />
+            </svg>
+            Analyzing...
+          </>
+        ) : (
+          "Analyze with AI"
+        )}
+      </Button>
+
+      {endpointStatus.length > 0 && (
+        <div className="mt-6 space-y-4">
+          <h2 className="text-xl font-semibold text-[#00ff88] text-center font-orbitron">
+            Analysis Progress
+          </h2>
+          {endpointStatus.map(({ name, status }) => (
+            <div
+              key={name}
+              className="bg-[#1a1a1a] border border-[#00ff88] rounded-lg p-4 shadow-[0_0_10px_rgba(0,255,136,0.3)] neon-border animate-fade-in"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[#00ff88] font-orbitron font-semibold">
+                  {name}
+                </span>
+                <div
+                  className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                    status === "pending"
+                      ? "bg-[#00ff88]/50 animate-pulse"
+                      : status === "success"
+                      ? "bg-[#00ff88] shadow-[0_0_10px_#00ff88]"
+                      : "bg-[#ff3333] shadow-[0_0_10px_#ff3333]"
+                  }`}
+                >
+                  {status === "success" && (
+                    <svg
+                      className="w-4 h-4 text-black"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  )}
+                  {status === "error" && (
+                    <svg
+                      className="w-4 h-4 text-black"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </main>
   );
 }
